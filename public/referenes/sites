@@ -1,0 +1,162 @@
+https://fractory.com/
+
+marquee animation 
+
+    <div className="absolute left-0 top-0 h-screen flex overflow-hidden z-20">
+          <div ref={firstText} className="flex flex-col">
+            {[...Array(10)].map((_, i) => (
+              <div key={i} className="flex flex-col items-center gap-4 mb-4">
+                {["FABRICATING", "DESIGN", "CONTRACTING"].map((word, idx) => (
+                  <a
+                    key={idx}
+                    href=""
+                    className="cursor-pointer text-[2.75rem] font-bold text-metal-shine py-2 transition-all duration-300 hover:scale-110 hover:text-[#e76f51]"
+                    style={{
+                      writingMode: "vertical-rl",
+                      fontFamily: "Unbounded, sans-serif",
+                    }}
+                  >
+                    {word}
+                  </a>
+                ))}
+                <span className="text-metal-shine text-4xl">•</span>
+              </div>
+            ))}
+          </div>
+        </div>
+
+       
+        <div className="absolute right-0 top-0 h-screen flex overflow-hidden z-20">
+          <div ref={secondText} className="flex flex-col">
+            {[...Array(10)].map((_, i) => (
+              <div key={i} className="flex flex-col items-center gap-4 mb-4">
+                {["MANAGEMENT", "SELF PERFORM", "CONTRACTING"].map((word, idx) => (
+                  <a
+                    key={idx}
+                    href=""
+                    className="cursor-pointer text-[2.75rem] font-bold text-metal-shine py-2 transition-all duration-300 hover:scale-110 hover:text-[#e76f51]"
+                    style={{
+                      writingMode: "vertical-rl",
+                      fontFamily: "Unbounded, sans-serif",
+                    }}
+                  >
+                    {word}
+                  </a>
+                ))}
+                <span className="text-metal-shine text-4xl">•</span>
+              </div>
+            ))}
+          </div>
+        </div>
+
+        const shineTexts = document.querySelectorAll('.text-metal-shine');
+    
+    shineTexts.forEach((text) => {
+      // Create continuous shimmer effect
+      gsap.to(text, {
+        backgroundPosition: '200% center',
+        duration: 3,
+        ease: 'none',
+        repeat: -1,
+      });
+
+      // Add glow pulse
+      gsap.to(text, {
+        filter: 'brightness(1.3) contrast(1.2) drop-shadow(0 0 8px rgba(255,255,255,0.4))',
+        duration: 2,
+        ease: 'sine.inOut',
+        repeat: -1,
+        yoyo: true,
+      });
+    });
+
+    // Hover animations
+    shineTexts.forEach((text) => {
+      const element = text as HTMLElement;
+      let hoverTween: gsap.core.Tween | null = null;
+      
+      element.addEventListener('mouseenter', () => {
+        // Kill any existing animations
+        gsap.killTweensOf(element);
+        
+        // Add coral class for solid color
+        element.classList.add('coral-active');
+        
+        // Quick scale up with vertical spacing
+        gsap.to(element, {
+          scale: 1.1,
+          letterSpacing: '0.15em',
+          marginTop: '20px',
+          marginBottom: '20px',
+          duration: 0.2,
+          ease: 'power1.out',
+        });
+        
+        // Apply coral glow
+        gsap.to(element, {
+          filter: 'brightness(1.5) contrast(1.3) drop-shadow(0 0 20px rgba(231,111,81,0.8))',
+          duration: 0.3,
+          ease: 'power1.out',
+        });
+      });
+
+      element.addEventListener('mouseleave', () => {
+        // Kill hover animation
+        if (hoverTween) hoverTween.kill();
+        gsap.killTweensOf(element);
+        
+        // Remove coral class
+        element.classList.remove('coral-active');
+        
+        // Quick scale down with margin reset
+        gsap.to(element, {
+          scale: 1,
+          letterSpacing: '0.05em',
+          marginTop: '0px',
+          marginBottom: '0px',
+          duration: 0.2,
+          ease: 'power1.out',
+        });
+        
+        // Return to normal glow
+        gsap.to(element, {
+          filter: 'brightness(1.15) contrast(1.1) drop-shadow(0 0 6px rgba(255,255,255,0.3))',
+          duration: 0.3,
+          ease: 'power1.out',
+        });
+        
+        // Resume normal shimmer
+        gsap.to(element, {
+          backgroundPosition: '200% center',
+          duration: 3,
+          ease: 'none',
+          repeat: -1,
+        });
+      });
+    });
+
+    // Marquee animation
+    const marqueeAnimation = () => {
+      gsap.fromTo(
+        firstText.current,
+        { y: () => -firstText.current!.scrollHeight / 2 },
+        {
+          y: 0,
+          repeat: -1,
+          duration: 150,
+          ease: "linear",
+        }
+      );
+
+      gsap.fromTo(
+        secondText.current,
+        { y: 0 },
+        {
+          y: () => -secondText.current!.scrollHeight / 2,
+          repeat: -1,
+          duration: 150,
+          ease: "linear",
+        }
+      );
+    };
+    marqueeAnimation();
