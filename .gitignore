@@ -40,3 +40,13 @@ yarn-error.log*
 # typescript
 *.tsbuildinfo
 next-env.d.ts
+
+# Django / Python
+__pycache__/
+*.pyc
+db.sqlite3
+media/
+
+# Next.js public assets
+/public
+
