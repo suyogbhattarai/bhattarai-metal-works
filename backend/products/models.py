@@ -29,15 +29,18 @@ class Category(models.Model):
 
 class Material(models.Model):
     """Materials used in fabrication"""
-    name = models.CharField(max_length=100)
+    name = models.CharField(max_length=100, unique=True)
     description = models.TextField(blank=True)
+    image = models.ImageField(upload_to='materials/', blank=True, null=True)
+    is_active = models.BooleanField(default=True)
+    created_at = models.DateTimeField(auto_now_add=True)
+    updated_at = models.DateTimeField(auto_now=True)
     
     class Meta:
         ordering = ['name']
     
     def __str__(self):
         return self.name
-
 
 class Product(models.Model):
     """Products available for purchase or quotation"""
@@ -141,6 +144,11 @@ class Specification(models.Model):
 
     class Meta:
         ordering = ['order']
+        # Ensure no duplicate specification names per product
+        unique_together = [['product', 'name']]
+        indexes = [
+            models.Index(fields=['product', 'name']),
+        ]
 
     def __str__(self):
         return f"{self.product.name} - {self.name}: {self.value}"
@@ -238,7 +246,7 @@ class QuotationRequest(models.Model):
         ordering = ['-created_at']
 
     def __str__(self):
-        return f"Quote #{self.id} - {self.user.username} - {self.status}"
+        return f"Quote #{self.id} - {self.user.username if self.user else self.guest_name} - {self.status}"
 
 
 class QuotationAttachment(models.Model):

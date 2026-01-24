@@ -3,7 +3,7 @@ import { useEffect, useRef } from "react";
 import gsap from "gsap";
 import { ScrollTrigger } from "gsap/ScrollTrigger";
 import { TextPlugin } from "gsap/TextPlugin";
-import {  GiMetalBar, GiChemicalDrop } from "react-icons/gi";
+import { GiMetalBar, GiChemicalDrop } from "react-icons/gi";
 import { MdPrecisionManufacturing } from "react-icons/md";
 import { Swiper, SwiperSlide } from 'swiper/react';
 import { Autoplay, EffectCards, Pagination } from 'swiper/modules';
@@ -18,6 +18,11 @@ import { BsGear } from "react-icons/bs";
 import { IoMdHammer } from "react-icons/io";
 import { GiMetalPlate } from "react-icons/gi";
 import WhyChooseSection from "@/components/WhyChooseSection";
+import Image from 'next/image'
+import logo from './logo.png'
+import Navbar from "@/components/Navbar";
+import Footer from "@/components/Footer";
+import Link from 'next/link';
 
 gsap.registerPlugin(ScrollTrigger, TextPlugin);
 
@@ -30,338 +35,364 @@ export default function Home() {
   const sectionsRef = useRef<HTMLDivElement[]>([]);
   const serviceRow1Ref = useRef<HTMLDivElement>(null);
   const serviceRow2Ref = useRef<HTMLDivElement>(null);
+  const whyChooseSectionRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
+    let ctx = gsap.context(() => {
+      // Service marquee animations
+      if (serviceRow1Ref.current && serviceRow2Ref.current) {
+        gsap.to(serviceRow1Ref.current, {
+          x: '-50%',
+          duration: 80,
+          ease: 'none',
+          repeat: -1,
+        });
 
+        gsap.to(serviceRow2Ref.current, {
+          x: '0%',
+          duration: 80,
+          ease: 'none',
+          repeat: -1,
+          startAt: { x: '-50%' },
+        });
+      }
 
-    // Service marquee animations
-    if (serviceRow1Ref.current && serviceRow2Ref.current) {
-      gsap.to(serviceRow1Ref.current, {
-        x: '-50%',
-        duration: 80,
-        ease: 'none',
-        repeat: -1,
-      });
-
-      gsap.to(serviceRow2Ref.current, {
-        x: '0%',
-        duration: 80,
-        ease: 'none',
-        repeat: -1,
-        startAt: { x: '-50%' },
-      });
-    }
-
-    // Scroll animations for sections
-    sectionsRef.current.forEach((section) => {
-      gsap.fromTo(
-        section,
-        { opacity: 0, y: 100 },
-        {
-          opacity: 1,
-          y: 0,
-          duration: 1.2,
-          scrollTrigger: {
-            trigger: section,
-            start: "top 10px",
+      // Parallax card overlap effect for Why Choose Us section
+      if (whyChooseSectionRef.current) {
+        gsap.fromTo(
+          whyChooseSectionRef.current,
+          {
+            y: '100vh',
+            scale: 0.9,
+            opacity: 0
           },
-        }
-      );
-    });
-  }, []);
+          {
+            y: 0,
+            scale: 1,
+            opacity: 1,
+            ease: 'power2.out',
+            scrollTrigger: {
+              trigger: whyChooseSectionRef.current,
+              start: 'top bottom',
+              end: 'top 20%',
+              scrub: 1.5,
+              anticipatePin: 1,
+            },
+          }
+        );
+      }
 
-  useEffect(() => {
-    const ctx = gsap.context(() => {
+      // Scroll animations for sections
+      sectionsRef.current.forEach((section) => {
+        if (!section) return;
+        gsap.fromTo(
+          section,
+          { opacity: 0, y: 100 },
+          {
+            opacity: 1,
+            y: 0,
+            duration: 1.2,
+            scrollTrigger: {
+              trigger: section,
+              start: "top 10px",
+            },
+          }
+        );
+      });
+
       const TEXT_START = 0.1;
 
-      ScrollTrigger.matchMedia({
-        // DESKTOP (lg and above - 1024px+)
-        "(min-width: 1024px)": function () {
-          const mainTl = gsap.timeline({
-            scrollTrigger: {
-              trigger: videoContainerRef.current,
-              start: "top top",
-              end: "+=200%",
-              scrub: 1,
-              pin: true,
-              anticipatePin: 1,
-            },
-          });
+      // Only set up scroll trigger if video container exists
+      if (videoContainerRef.current && videoRef.current) {
+        ScrollTrigger.matchMedia({
+          // DESKTOP (lg and above - 1024px+)
+          "(min-width: 1024px)": function () {
+            const mainTl = gsap.timeline({
+              scrollTrigger: {
+                trigger: videoContainerRef.current,
+                start: "top top",
+                end: "+=200%",
+                scrub: 1,
+                pin: true,
+                anticipatePin: 1,
+              },
+            });
 
-      mainTl.to(videoRef.current, {
-  scale: 0.9,
-  borderRadius: "30px",
-  height: "78vh",
-  width: "53vw",
-  y: "140px",
-  x: "44.8vw",
-  ease: "power2.inOut",
-}, 0);
-          mainTl.to(".video-overlay", {
-  opacity: 0,
-  ease: "power2.inOut",
-}, 0);
+            mainTl.to(videoRef.current, {
+              scale: 0.9,
+              borderRadius: "30px",
+              height: "78vh",
+              width: "53vw",
+              y: "140px",
+              x: "44.8vw",
+              ease: "power2.inOut",
+            }, 0);
+            mainTl.to(".video-overlay", {
+              opacity: 0,
+              ease: "power2.inOut",
+            }, 0);
 
-          mainTl.to(".old-content", {
-            scale: 0.5,
-            y: "0%",
-            x: "30vw",
-            opacity: 0,
-            ease: "power2.inOut",
-          }, 0);
+            mainTl.to(".old-content", {
+              scale: 0.5,
+              y: "0%",
+              x: "30vw",
+              opacity: 0,
+              ease: "power2.inOut",
+            }, 0);
 
-          mainTl.set(".old-content", { display: "none" }, 0.3);
-          mainTl.set(".new-content", { display: "block" }, 0.1);
+            mainTl.set(".old-content", { display: "none" }, 0.3);
+            mainTl.set(".new-content", { display: "block" }, 0.1);
 
-          mainTl.fromTo(".new-content",
-            { scale: 0.9, opacity: 0 },
-            { scale: 1, opacity: 1, ease: "power2.inOut" },
-            0.1
-          );
+            mainTl.fromTo(".new-content",
+              { scale: 0.9, opacity: 0 },
+              { scale: 1, opacity: 1, ease: "power2.inOut" },
+              0.1
+            );
 
-          mainTl.fromTo(".new-heading", {
-            opacity: 0,
-            y: 60,
-          }, {
-            opacity: 1,
-            y: 0,
-            duration: 0.8,
-            ease: "power2.out",
-          }, TEXT_START);
+            mainTl.fromTo(".new-heading", {
+              opacity: 0,
+              y: 60,
+            }, {
+              opacity: 1,
+              y: 0,
+              duration: 0.8,
+              ease: "power2.out",
+            }, TEXT_START);
 
-          mainTl.fromTo(".new-heading-line-2", {
-            opacity: 0,
-            y: 60,
-          }, {
-            opacity: 1,
-            y: 0,
-            duration: 0.8,
-            ease: "power2.out",
-          }, TEXT_START + 0.1);
+            mainTl.fromTo(".new-heading-line-2", {
+              opacity: 0,
+              y: 60,
+            }, {
+              opacity: 1,
+              y: 0,
+              duration: 0.8,
+              ease: "power2.out",
+            }, TEXT_START + 0.1);
 
-          mainTl.fromTo(".new-subheading", {
-            opacity: 0,
-            y: 60,
-          }, {
-            opacity: 1,
-            y: 0,
-            duration: 0.8,
-            ease: "power2.out",
-          }, TEXT_START + 0.2);
+            mainTl.fromTo(".new-subheading", {
+              opacity: 0,
+              y: 60,
+            }, {
+              opacity: 1,
+              y: 0,
+              duration: 0.8,
+              ease: "power2.out",
+            }, TEXT_START + 0.2);
 
-          mainTl.fromTo(".new-buttons", {
-            opacity: 0,
-            y: 50,
-          }, {
-            opacity: 1,
-            y: 0,
-            duration: 0.8,
-            ease: "power2.out",
-          }, TEXT_START + 0.3);
+            mainTl.fromTo(".new-buttons", {
+              opacity: 0,
+              y: 50,
+            }, {
+              opacity: 1,
+              y: 0,
+              duration: 0.8,
+              ease: "power2.out",
+            }, TEXT_START + 0.3);
 
-          mainTl.fromTo(".security-message", {
-            opacity: 0,
-            y: 40,
-          }, {
-            opacity: 1,
-            y: 0,
-            duration: 0.8,
-            ease: "power2.out",
-          }, TEXT_START + 0.4);
-        },
+            mainTl.fromTo(".security-message", {
+              opacity: 0,
+              y: 40,
+            }, {
+              opacity: 1,
+              y: 0,
+              duration: 0.8,
+              ease: "power2.out",
+            }, TEXT_START + 0.4);
+          },
 
-        // TABLET (md to lg - 768px to 1023px)
-        "(min-width: 768px) and (max-width: 1023px)": function () {
-          const mainTl = gsap.timeline({
-            scrollTrigger: {
-              trigger: videoContainerRef.current,
-              start: "top top",
-              end: "+=200%",
-              scrub: 1,
-              pin: true,
-              anticipatePin: 1,
-            },
-          });
+          // TABLET (md to lg - 768px to 1024px)
+          "(min-width: 768px) and (max-width: 1023px)": function () {
+            const mainTl = gsap.timeline({
+              scrollTrigger: {
+                trigger: videoContainerRef.current,
+                start: "top top",
+                end: "+=200%",
+                scrub: 1,
+                pin: true,
+                anticipatePin: 1,
+              },
+            });
 
-     mainTl.to(videoRef.current, {
-  scale: 0.95,
-  borderRadius: "25px",
-  height: "45vh",
-  width: "95vw",
-  y: "12vh",
-  x: "0",
-  ease: "power2.inOut",
-}, 0);
+            mainTl.to(videoRef.current, {
+              scale: 0.95,
+              borderRadius: "25px",
+              height: "43vh",
+              width: "97vw",
+              y: "12vh",
+              x: "1.2vw",
+              ease: "power2.inOut",
+            }, 0);
 
-mainTl.to(".video-overlay", {
-  opacity: 0,
-  ease: "power2.inOut",
-}, 0);
+            mainTl.to(".video-overlay", {
+              opacity: 0,
+              ease: "power2.inOut",
+            }, 0);
 
-          mainTl.to(".old-content", {
-            scale: 0.6,
-            y: "-80%",
-            x: "-10%",
-            opacity: 0,
-            ease: "power2.inOut",
-          }, 0);
+            mainTl.to(".old-content", {
+              scale: 0.6,
+              y: "-80%",
+              x: "-10%",
+              opacity: 0,
+              ease: "power2.inOut",
+            }, 0);
 
-          mainTl.set(".old-content", { display: "none" }, 0.3);
-          mainTl.set(".new-content", { display: "block" }, 0.05);
+            mainTl.set(".old-content", { display: "none" }, 0.3);
+            mainTl.set(".new-content", { display: "block" }, 0.05);
 
-          mainTl.fromTo(".new-content",
-            { scale: 0.5, opacity: 0 },
-            { scale: 1, opacity: 1, ease: "power2.inOut" },
-            0.1
-          );
+            mainTl.fromTo(".new-content",
+              { scale: 0.5, opacity: 0 },
+              { scale: 1, opacity: 1, ease: "power2.inOut" },
+              0.1
+            );
 
-          mainTl.fromTo(".new-heading", {
-            opacity: 0,
-            y: 60,
-          }, {
-            opacity: 1,
-            y: 0,
-            duration: 0.8,
-            ease: "power2.out",
-          }, TEXT_START);
+            mainTl.fromTo(".new-heading", {
+              opacity: 0,
+              y: 60,
+            }, {
+              opacity: 1,
+              y: 0,
+              duration: 0.8,
+              ease: "power2.out",
+            }, TEXT_START);
 
-          mainTl.fromTo(".new-heading-line-2", {
-            opacity: 0,
-            y: 60,
-          }, {
-            opacity: 1,
-            y: 0,
-            duration: 0.8,
-            ease: "power2.out",
-          }, TEXT_START + 0.1);
+            mainTl.fromTo(".new-heading-line-2", {
+              opacity: 0,
+              y: 60,
+            }, {
+              opacity: 1,
+              y: 0,
+              duration: 0.8,
+              ease: "power2.out",
+            }, TEXT_START + 0.1);
 
-          mainTl.fromTo(".new-subheading", {
-            opacity: 0,
-            y: 60,
-          }, {
-            opacity: 1,
-            y: 0,
-            duration: 0.8,
-            ease: "power2.out",
-          }, TEXT_START + 0.2);
+            mainTl.fromTo(".new-subheading", {
+              opacity: 0,
+              y: 60,
+            }, {
+              opacity: 1,
+              y: 0,
+              duration: 0.8,
+              ease: "power2.out",
+            }, TEXT_START + 0.2);
 
-          mainTl.fromTo(".new-buttons", {
-            opacity: 0,
-            y: 50,
-          }, {
-            opacity: 1,
-            y: 0,
-            duration: 0.8,
-            ease: "power2.out",
-          }, TEXT_START + 0.3);
+            mainTl.fromTo(".new-buttons", {
+              opacity: 0,
+              y: 50,
+            }, {
+              opacity: 1,
+              y: 0,
+              duration: 0.8,
+              ease: "power2.out",
+            }, TEXT_START + 0.3);
 
-          mainTl.fromTo(".security-message", {
-            opacity: 0,
-            y: 40,
-          }, {
-            opacity: 1,
-            y: 0,
-            duration: 0.8,
-            ease: "power2.out",
-          }, TEXT_START + 0.4);
-        },
+            mainTl.fromTo(".security-message", {
+              opacity: 0,
+              y: 40,
+            }, {
+              opacity: 1,
+              y: 0,
+              duration: 0.8,
+              ease: "power2.out",
+            }, TEXT_START + 0.4);
+          },
 
-        // MOBILE (below md - under 768px)
-        "(max-width: 767px)": function () {
-          const mainTl = gsap.timeline({
-            scrollTrigger: {
-              trigger: videoContainerRef.current,
-              start: "top top",
-              end: "+=200%",
-              scrub: 1,
-              pin: true,
-              anticipatePin: 1,
-            },
-          });
+          // MOBILE (below md - under 768px)
+          "(max-width: 767px)": function () {
+            const mainTl = gsap.timeline({
+              scrollTrigger: {
+                trigger: videoContainerRef.current,
+                start: "top top",
+                end: "+=200%",
+                scrub: 1,
+                pin: true,
+                anticipatePin: 1,
+              },
+            });
 
-     mainTl.to(videoRef.current, {
-  scale: 0.93,
-  borderRadius: "20px",
-  height: "35vh",
-  width: "100vw",
-  y: "10vh",
-  x: "0",
-  ease: "power2.inOut",
-}, 0);
+            mainTl.to(videoRef.current, {
+              scale: 0.93,
+              borderRadius: "20px",
+              height: "35vh",
+              width: "100vw",
+              y: "10vh",
+              x: "0",
+              ease: "power2.inOut",
+            }, 0);
 
-mainTl.to(".video-overlay", {
-  opacity: 0,
-  ease: "power2.inOut",
-}, 0);
+            mainTl.to(".video-overlay", {
+              opacity: 0,
+              ease: "power2.inOut",
+            }, 0);
 
-          mainTl.to(".old-content", {
-            scale: 0.5,
-            y: "-90%",
-            x: "-15%",
-            opacity: 0,
-            ease: "power2.inOut",
-          }, 0);
+            mainTl.to(".old-content", {
+              scale: 0.5,
+              y: "-65%",
+              x: "-15%",
+              opacity: 0,
+              ease: "power2.inOut",
+            }, 0);
 
-          mainTl.set(".old-content", { display: "none" }, 0.3);
-          mainTl.set(".new-content", { display: "block" }, 0.05);
+            mainTl.set(".old-content", { display: "none" }, 0.3);
+            mainTl.set(".new-content", { display: "block" }, 0.05);
 
-          mainTl.fromTo(".new-content",
-            { scale: 0.8, opacity: 0 },
-            { scale: 1, opacity: 1, ease: "power2.inOut" },
-            0.1
-          );
+            mainTl.fromTo(".new-content",
+              { scale: 0.8, opacity: 0 },
+              { scale: 1, opacity: 1, ease: "power2.inOut" },
+              0.1
+            );
 
-          mainTl.fromTo(".new-heading", {
-            opacity: 0,
-            y: 60,
-          }, {
-            opacity: 1,
-            y: 0,
-            duration: 0.8,
-            ease: "power2.out",
-          }, TEXT_START);
+            mainTl.fromTo(".new-heading", {
+              opacity: 0,
+              y: 60,
+            }, {
+              opacity: 1,
+              y: 0,
+              duration: 0.8,
+              ease: "power2.out",
+            }, TEXT_START);
 
-          mainTl.fromTo(".new-heading-line-2", {
-            opacity: 0,
-            y: 60,
-          }, {
-            opacity: 1,
-            y: 0,
-            duration: 0.8,
-            ease: "power2.out",
-          }, TEXT_START + 0.1);
+            mainTl.fromTo(".new-heading-line-2", {
+              opacity: 0,
+              y: 60,
+            }, {
+              opacity: 1,
+              y: 0,
+              duration: 0.8,
+              ease: "power2.out",
+            }, TEXT_START + 0.1);
 
-          mainTl.fromTo(".new-subheading", {
-            opacity: 0,
-            y: 60,
-          }, {
-            opacity: 1,
-            y: 0,
-            duration: 0.8,
-            ease: "power2.out",
-          }, TEXT_START + 0.2);
+            mainTl.fromTo(".new-subheading", {
+              opacity: 0,
+              y: 60,
+            }, {
+              opacity: 1,
+              y: 0,
+              duration: 0.8,
+              ease: "power2.out",
+            }, TEXT_START + 0.2);
 
-          mainTl.fromTo(".new-buttons", {
-            opacity: 0,
-            y: 50,
-          }, {
-            opacity: 1,
-            y: 0,
-            duration: 0.8,
-            ease: "power2.out",
-          }, TEXT_START + 0.3);
+            mainTl.fromTo(".new-buttons", {
+              opacity: 0,
+              y: 50,
+            }, {
+              opacity: 1,
+              y: 0,
+              duration: 0.8,
+              ease: "power2.out",
+            }, TEXT_START + 0.3);
 
-          mainTl.fromTo(".security-message", {
-            opacity: 0,
-            y: 40,
-          }, {
-            opacity: 1,
-            y: 0,
-            duration: 0.8,
-            ease: "power2.out",
-          }, TEXT_START + 0.35);
-        },
-      });
+            mainTl.fromTo(".security-message", {
+              opacity: 0,
+              y: 40,
+            }, {
+              opacity: 1,
+              y: 0,
+              duration: 0.8,
+              ease: "power2.out",
+            }, TEXT_START + 0.35);
+          },
+        });
+      }
     });
 
     return () => ctx.revert();
@@ -467,7 +498,7 @@ mainTl.to(".video-overlay", {
           }
         }
       `}</style>
-
+      <Navbar />
       <section
         ref={videoContainerRef}
         className="relative h-screen w-full overflow-hidden z-30"
@@ -482,13 +513,13 @@ mainTl.to(".video-overlay", {
         >
           <source src="/intro.mp4" type="video/mp4" />
         </video>
-<div className="video-overlay absolute inset-0 z-[5] bg-[#010d3c]/40"></div>        <div className="absolute left-0 bottom-10 z-10 lg:px-15 md:px-10 sm:px-5 px-3 max-w-7xl w-full">
+        <div className="video-overlay absolute inset-0 z-[5] bg-[#010d3c]/40"></div>        <div className="absolute left-0 bottom-10 z-10 lg:px-15 md:px-10 sm:px-5 px-3 max-w-7xl w-full">
           <div className="old-content w-full md:px-0">
             <div className="mb-6">
               <h2 className="text-2xl text-white font-normal mb-5">Crafting Strength & Design</h2>
               <h1 className="text-3xl md:text-[55px] font-medium leading-tight text-[#f6423a]">
                 Metal Fabrication Excellence in Nepal
-              </h1> 
+              </h1>
             </div>
 
             <p className="max-w-4xl font-normal text-base md:text-lg text-white/90 mb-8">
@@ -498,19 +529,21 @@ mainTl.to(".video-overlay", {
             </p>
 
             <div className="flex flex-col sm:flex-row gap-4 md:gap-5">
-              <button className="py-3 px-8 bg-[#f6423a] hover:bg-[#e03229] text-white rounded-full transition text-sm md:text-base">
+              <a href="/portfolio"><button className="py-3 px-8 bg-[#f6423a] hover:bg-[#e03229] text-white rounded-full transition w-full text-sm md:text-base">
                 Explore Our Work
-              </button>
-              <button className="px-8 py-3 border border-white text-white rounded-full hover:bg-white/10 transition text-sm md:text-base">
-                Contact Us
-              </button>
+              </button></a>
+              <a href="/getquote">
+                <button className="px-8 py-3 w-full border border-white text-white rounded-full hover:bg-white/10 transition text-sm md:text-base">
+                  Contact Us
+                </button></a>
+
             </div>
           </div>
         </div>
-        
-        <div className="new-content  lg:px-15 md:px-10 sm:px-5 px-3 absolute lg:top-[27%] md:top-[52%] top-[47%] hidden w-full lg:w-[54%] md:w-[90%]">
+
+        <div className="new-content mb-10  lg:px-15 md:px-10 sm:px-5 px-3 absolute lg:top-[31%] md:top-[56.7%] sm:top-[57%] top-[46%] hidden  w-full lg:w-[54%] md:w-[90%]">
           <div className="mb-6">
-            <h1 className="text-2xl md:text-[34px] lg:text-[38px] font-bold leading-relaxed">
+            <h1 className="text-[1.4rem] sm:text-[2rem] md:text-[32px] lg:text-[2.2rem] font-bold leading-relaxed">
               <span className="new-heading text-[#f6423a]">Scalable Manufacturing Services</span>
               <span className="new-heading-line-2 text-white"> for Engineering Businesses</span>
             </h1>
@@ -521,31 +554,33 @@ mainTl.to(".video-overlay", {
               Ensure your business needs never outpace your production capabilities.
             </h2>
           </div>
-        
+
           <div className="new-buttons flex flex-col sm:flex-row gap-3 md:gap-4 mb-7">
-            <button className="py-3 px-6 md:px-8 bg-[#f6423a] hover:bg-[#e03229] text-white rounded-full text-sm md:text-base font-semibold transition">
-              Instant Quote
-            </button>
-            <button className="px-6 md:px-8 py-3 bg-[#f6423a] hover:bg-[#e03229] text-white rounded-full text-sm md:text-base font-semibold transition">
-              Production Quote
-            </button>
+            <a href="/getquote">
+              <button className="py-3 w-full px-6 md:px-4 bg-[#f6423a] hover:bg-[#e03229] text-white rounded-full text-sm md:text-base font-semibold transition">
+                Instant Quote
+              </button>
+            </a>
+            <a href="/getquote">
+              <button className="px-6 w-full md:px-4 py-3 bg-[#f6423a] hover:bg-[#e03229] text-white rounded-full text-sm md:text-base font-semibold transition">
+                Production Quote
+              </button>
+            </a>
+
           </div>
 
-          <div className="security-message flex items-center gap-3">
-            <svg className="w-4 h-4 md:w-5 md:h-5 text-white/70 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12l2 2 4-4m5.618-4.016A11.955 11.955 0 0112 2.944a11.955 11.955 0 01-8.618 3.04A12.02 12.02 0 003 9c0 5.591 3.824 10.29 9 11.622 5.176-1.332 9-6.03 9-11.622 0-1.042-.133-2.052-.382-3.016z" />
-            </svg>
-            <p className="text-sm md:text-base text-white/80">All production files are secure and confidential.</p>
-          </div>
+ 
         </div>
       </section>
 
-      <main className="relative bg-gradient-to-b from-[#010d3c] to-gray-900 text-white">
+      <main className="bg-gradient-to-b from-[#030447] to-gray-900 text-white">
 
- 
-<WhyChooseSection/>
+        <div ref={whyChooseSectionRef} className="relative z-20">
+          <WhyChooseSection />
+        </div>
+        
         <section className="min-h-screen relative flex items-center justify-center px-5 md:px-20 py-20">
-     
+
           <div className="max-w-6xl mx-auto grid md:grid-cols-2 gap-10 items-center">
             <div className="about-text ">
               <h2 className="text-5xl md:text-7xl font-bold text-[#f6423a] mb-6">
@@ -571,145 +606,12 @@ mainTl.to(".video-overlay", {
             </div>
           </div>
         </section>
-<section className="relative min-h-screen overflow-hidden px-5 md:px-20 bg-[#010d3c]">
-             <div className="flex bg-[#f6423a] pb-2 pt-1 absolute left-0   whitespace-nowrap " style={{
-         backgroundImage: "repeating-linear-gradient(-45deg, transparent, transparent 10px, rgba(0,0,0,.1) 10px, rgba(0,0,0,.1) 20px)"
-       }}>
-    <div ref={serviceRow1Ref} className="flex gap-8 md:gap-16 lg:gap-24 items-center">
-      {[...Array(2)].map((_, groupIdx) => (
-        <div key={groupIdx} className="flex gap-8 md:gap-16 lg:gap-20 items-center">
-          {[
-            { name: "RAILINGS", link: "#" },
-            { name: "GATES", link: "#" },
-            { name: "GRILLS", link: "#" },
-            { name: "STAIRS", link: "#" },
-            { name: "SHEDS", link: "#" },
-            { name: "CANOPY", link: "#" },
-          ].map((service, idx) => (
-            <a
-              key={idx}
-              href={service.link}
-              className="retro-text-item group cursor-pointer"
-            >
-              <span className="text-3xl md:text-7xl lg:text-8xl font-extrabold whitespace-nowrap text-transparent [-webkit-text-stroke:2px_white] group-hover:text-white group-hover:[-webkit-text-stroke:2px_white] transition-all duration-300" style={{ fontFamily: "'Arnel', sans-serif" }}>
-                {service.name}
-              </span>
-            </a>
-          ))}
-        </div>
-      ))}
-    </div>
-  </div>
-          <div className="max-w-6xl mx-auto">
-            {/* Main Content - Header and Slider in Flex */}
-            <div className="grid md:grid-cols-2 gap-10  items-center py-50">
-              {/* Services Section Header */}
-              <div className="about-text ">
-                <h2 className="text-5xl md:text-7xl font-bold text-white mb-6">
-                  Our <span className="text-[#f6423a]">Services</span>
-                </h2>
-                <p className="text-lg text-white/80 mb-4">
-                  Comprehensive metal fabrication solutions tailored to your needs. 
-                  From precision cutting to custom assembly, we deliver excellence in every project.
-                </p>
-                <p className="text-lg text-white/80">
-                  Our team combines traditional craftsmanship with modern technology to deliver 
-                  superior results that exceed expectations.
-                </p>
-              </div>
 
-              {/* Swiper Slider */}
-        
-              <div className="about-image flex justify-center">
-                <Swiper
-                  effect={'cards'}
-                  grabCursor={true}
-                  autoplay={{
-                    delay: 2500,
-                    disableOnInteraction: false,
-                  }}
-                  pagination={{
-                    clickable: true,
-                  }}
-                  modules={[EffectCards, Autoplay, Pagination]}
-                  className="mySwiper w-full max-w-[500px]"
-                  style={{ overflow: 'visible' }}
-                >
-                  <SwiperSlide className="rounded-2xl">
-                    <img 
-                      src="https://images.unsplash.com/photo-1504917595217-d4dc5ebe6122?w=800&q=80" 
-                      alt="Metal fabrication work"
-                      className="w-full h-full object-cover rounded-2xl"
-                    />
-                  </SwiperSlide>
-                  <SwiperSlide className="rounded-2xl">
-                    <img 
-                      src="https://images.unsplash.com/photo-1581092918056-0c4c3acd3789?w=800&q=80" 
-                      alt="Welding process"
-                      className="w-full h-full object-cover rounded-2xl"
-                    />
-                  </SwiperSlide>
-                  <SwiperSlide className="rounded-2xl">
-                    <img 
-                      src="https://images.unsplash.com/photo-1513828583688-c52646db42da?w=800&q=80" 
-                      alt="Metal cutting"
-                      className="w-full h-full object-cover rounded-2xl"
-                    />
-                  </SwiperSlide>
-                  <SwiperSlide className="rounded-2xl">
-                    <img 
-                      src="https://images.unsplash.com/photo-1589939705384-5185137a7f0f?w=800&q=80" 
-                      alt="Industrial machinery"
-                      className="w-full h-full object-cover rounded-2xl"
-                    />
-                  </SwiperSlide>
-                  <SwiperSlide className="rounded-2xl">
-                    <img 
-                      src="https://images.unsplash.com/photo-1589939705384-5185137a7f0f?w=800&q=80" 
-                      alt="Metal workshop"
-                      className="w-full h-full object-cover rounded-2xl"
-                    />
-                  </SwiperSlide>
-                </Swiper>
-              </div>
-            </div>
-{/* Services Marquee Section - Retro Style */}
 
-        
-          </div>
-           <div className="flex bg-[#f6423a] pb-2 pt-1 absolute left-0 bottom-0  whitespace-nowrap " style={{
-         backgroundImage: "repeating-linear-gradient(-45deg, transparent, transparent 10px, rgba(0,0,0,.1) 10px, rgba(0,0,0,.1) 20px)"
-       }}>
-    <div ref={serviceRow1Ref} className="flex gap-8 md:gap-16 lg:gap-24 items-center">
-      {[...Array(2)].map((_, groupIdx) => (
-        <div key={groupIdx} className="flex gap-8 md:gap-16 lg:gap-20 items-center">
-          {[
-            { name: "RAILINGS", link: "#" },
-            { name: "GATES", link: "#" },
-            { name: "GRILLS", link: "#" },
-            { name: "STAIRS", link: "#" },
-            { name: "SHEDS", link: "#" },
-            { name: "CANOPY", link: "#" },
-          ].map((service, idx) => (
-            <a
-              key={idx}
-              href={service.link}
-              className="retro-text-item group cursor-pointer"
-            >
-              <span className="text-3xl md:text-7xl lg:text-8xl font-extrabold whitespace-nowrap text-transparent [-webkit-text-stroke:2px_white] group-hover:text-white group-hover:[-webkit-text-stroke:2px_white] transition-all duration-300" style={{ fontFamily: "'Arnel', sans-serif" }}>
-                {service.name}
-              </span>
-            </a>
-          ))}
-        </div>
-      ))}
-    </div>
-  </div>
-        </section>
+        <section className=" flex items-center justify-center px-5 md:px-20 py-10 w-[100%] mx-auto bg-gradient-to-t from-[#000c3a] to-[#00082a] rounded-t-[50px] shadow-[0px_-4px_6px_-1px_rgba(0,0,0,0.1),_0px_-2px_4px_-2px_rgba(0,0,0,0.06)]">
+          <div className="max-w-4xl relative py-10  mx-auto text-center">
 
-        <section className="min-h-[60vh] flex items-center justify-center px-5 md:px-20 py-20 bg-gradient-to-t from-gray-900 to-[#010d3c]">
-          <div className="max-w-4xl mx-auto text-center">
-            <h2 className="text-5xl md:text-7xl font-bold text-white mb-6">
+            <h2 className="text-5xl  md:text-7xl font-bold text-white mb-6">
               Ready to Start Your Project?
             </h2>
             <p className="text-xl text-white/70 mb-10">
@@ -717,16 +619,19 @@ mainTl.to(".video-overlay", {
               generations.
             </p>
             <div className="flex flex-col sm:flex-row gap-5 justify-center">
-              <button className="px-10 py-4 bg-[#f6423a] text-white rounded-full text-lg font-semibold hover:bg-[#e03229] transition-colors">
+              <a href="/getquote">  <button className="px-10 py-4 bg-[#f6423a] text-white rounded-full text-lg font-semibold hover:bg-[#e03229] transition-colors">
                 Get a Quote
-              </button>
-              <button className="px-10 py-4 border-2 border-white text-white rounded-full text-lg font-semibold hover:bg-white hover:text-black transition-all">
+              </button></a>
+
+              <a href="/portfolio">  <button className="px-10 py-4 border-2 border-white text-white rounded-full text-lg font-semibold hover:bg-white hover:text-black transition-all">
                 View Portfolio
-              </button>
+              </button></a>
+
             </div>
           </div>
         </section>
       </main>
+      <Footer />
     </>
   );
 }

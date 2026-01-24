@@ -177,7 +177,7 @@ export default function Portfolio() {
     <Navbar/>
        <section
       ref={containerRef}
-      className="min-h-screen px-6 md:px-14 py-20 md:py-40 text-white bg-[#fafafa]"
+      className="min-h-screen px-6 md:px-14 py-35 md:py-40 text-white bg-white"
     >
       {/* HEADER + FILTERS */}
       <div className="mb-8">

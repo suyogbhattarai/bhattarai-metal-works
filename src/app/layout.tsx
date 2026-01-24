@@ -4,6 +4,8 @@ import "./globals.css";
 import Navbar from "@/components/Navbar";
 import Contactbar from "@/components/Contactbar";
 import { Poppins } from "next/font/google";
+import Footer from "@/components/Footer";
+import ReduxProvider from "@/utils/lib/redux/ReduxProvider";
 
 const unbounded = Unbounded({
   variable: "--font-unbounded",
@@ -16,7 +18,7 @@ const poppins = Poppins({
 });
 
 export const metadata: Metadata = {
-  title: "Bhattarai Metal works",
+  title: "Bhattarai Metal Works",
   description: "Metal fabrication,construction,supply and funiture in nepal",
 };
 
@@ -28,15 +30,11 @@ export default function RootLayout({
   return (
     <html lang="en">
       <body
-        className={`${unbounded.variable} antialiased    `}
+        className={`${unbounded.variable} antialiased bg-[#071236]`}
       >
-        
-       
-   
-
-        <Navbar/>
-        
-        {children} 
+        <ReduxProvider>
+          {children}
+        </ReduxProvider>
       </body>
     </html>
   );

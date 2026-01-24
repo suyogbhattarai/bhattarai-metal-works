@@ -20,9 +20,12 @@ class CategorySerializer(serializers.ModelSerializer):
 
 
 class MaterialSerializer(serializers.ModelSerializer):
+    image = serializers.ImageField(required=False, allow_null=True)
+    
     class Meta:
         model = Material
-        fields = ['id', 'name', 'description']
+        fields = ['id', 'name', 'description', 'image', 'is_active', 'created_at', 'updated_at']
+        read_only_fields = ['created_at', 'updated_at']
 
 
 class ProductImageSerializer(serializers.ModelSerializer):
@@ -36,7 +39,27 @@ class ProductImageSerializer(serializers.ModelSerializer):
 class SpecificationSerializer(serializers.ModelSerializer):
     class Meta:
         model = Specification
-        fields = ['id', 'name', 'value', 'order']
+        fields = ['id', 'name', 'value', 'order', 'product']
+        read_only_fields = ['id']
+        extra_kwargs = {
+            'product': {'required': False}  # Make product optional in serializer
+        }
+    
+    def validate(self, data):
+        """Custom validation for unique constraint"""
+        # Check if we're creating (not updating)
+        if not self.instance:
+            product = self.context.get('product') or data.get('product')
+            name = data.get('name')
+            
+            if product and name:
+                # Check if specification with this name already exists for this product
+                if Specification.objects.filter(product=product, name__iexact=name).exists():
+                    raise serializers.ValidationError({
+                        'name': f"A specification with the name '{name}' already exists for this product."
+                    })
+        
+        return data
 
 
 class ReviewSerializer(serializers.ModelSerializer):
@@ -65,14 +88,14 @@ class ProductListSerializer(serializers.ModelSerializer):
     """Simplified serializer for product listing"""
     category = serializers.CharField(source='category.name', read_only=True)
     primary_image = serializers.SerializerMethodField()
-    materials = serializers.StringRelatedField(many=True)
+    # REMOVED: materials field - use separate endpoint instead
     average_rating = serializers.SerializerMethodField()
     review_count = serializers.SerializerMethodField()
 
     class Meta:
         model = Product
         fields = ['id', 'name', 'slug', 'category', 'description', 'product_type',
-                  'base_price', 'is_price_visible', 'primary_image', 'materials',
+                  'base_price', 'is_price_visible', 'primary_image',
                   'is_customizable', 'is_in_stock', 'is_low_stock', 'is_featured',
                   'average_rating', 'review_count', 'created_at']
 
@@ -82,6 +105,9 @@ class ProductListSerializer(serializers.ModelSerializer):
             primary_img = obj.images.first()
         
         if primary_img and primary_img.image:
+            request = self.context.get('request')
+            if request:
+                return request.build_absolute_uri(primary_img.image.url)
             return primary_img.image.url
         return None
 
@@ -148,19 +174,25 @@ class ProductCreateUpdateSerializer(serializers.ModelSerializer):
         required=True,
         help_text="Category ID"
     )
+    materials = serializers.ListField(
+        child=serializers.IntegerField(),
+        write_only=True,
+        required=False,
+        help_text="List of material IDs"
+    )
+    materials_detail = MaterialSerializer(source='materials', many=True, read_only=True)
     specifications = SpecificationSerializer(many=True, read_only=True)
-    materials = MaterialSerializer(many=True, read_only=True)
     category_detail = CategorySerializer(source='category', read_only=True)
 
     class Meta:
         model = Product
         fields = ['id', 'name', 'slug', 'category', 'category_detail', 'description', 'product_type',
-                  'base_price', 'is_price_visible', 'materials', 'length', 'width',
+                  'base_price', 'is_price_visible', 'materials', 'materials_detail', 'length', 'width',
                   'height', 'weight', 'is_customizable', 'customization_note',
                   'stock_quantity', 'low_stock_threshold', 'is_active', 'is_featured',
                   'meta_description', 'meta_keywords', 'images', 'alt_texts',
                   'primary_image_index', 'specifications', 'created_at', 'updated_at']
-        read_only_fields = ['slug', 'created_at', 'updated_at', 'category_detail']
+        read_only_fields = ['slug', 'created_at', 'updated_at', 'category_detail', 'materials_detail']
 
     def validate_category(self, value):
         """Validate that category exists"""
@@ -189,13 +221,35 @@ class ProductCreateUpdateSerializer(serializers.ModelSerializer):
         except Category.DoesNotExist:
             raise serializers.ValidationError({'category': f'Category with ID {category_id} does not exist'})
         
+        # Validate and convert materials
+        if 'materials' in data:
+            material_ids = data['materials']
+            # Handle both single ID and list of IDs
+            if not isinstance(material_ids, list):
+                material_ids = [material_ids]
+            
+            # Convert to integers and validate
+            try:
+                material_ids = [int(mid) for mid in material_ids]
+            except (ValueError, TypeError):
+                raise serializers.ValidationError({'materials': 'Material IDs must be integers'})
+            
+            # Verify materials exist
+            materials = Material.objects.filter(id__in=material_ids)
+            if materials.count() != len(material_ids):
+                invalid_ids = set(material_ids) - set(materials.values_list('id', flat=True))
+                raise serializers.ValidationError({'materials': f'Materials with IDs {invalid_ids} do not exist'})
+            
+            data['materials'] = materials
+        
         return data
 
     def create(self, validated_data):
-        # Extract images related data
+        # Extract related data
         images = validated_data.pop('images', [])
         alt_texts = validated_data.pop('alt_texts', [])
         primary_image_index = validated_data.pop('primary_image_index', None)
+        materials = validated_data.pop('materials', [])
         
         # Ensure alt_texts is a list
         if not isinstance(alt_texts, list):
@@ -214,8 +268,12 @@ class ProductCreateUpdateSerializer(serializers.ModelSerializer):
         try:
             # Create the product
             product = Product.objects.create(**validated_data)
+            
+            # Add materials to product (materials is now a queryset from validate())
+            if materials:
+                product.materials.set(materials)
         except Exception as e:
-            if 'slug' in str(e):
+            if 'slug' in str(e).lower():
                 raise serializers.ValidationError({
                     'name': 'A product with this name already exists.'
                 })
@@ -242,10 +300,11 @@ class ProductCreateUpdateSerializer(serializers.ModelSerializer):
         return product
 
     def update(self, instance, validated_data):
-        # Extract images related data
+        # Extract related data
         images = validated_data.pop('images', None)
         alt_texts = validated_data.pop('alt_texts', [])
         primary_image_index = validated_data.pop('primary_image_index', None)
+        materials = validated_data.pop('materials', None)
         
         # Ensure alt_texts is a list
         if not isinstance(alt_texts, list):
@@ -269,11 +328,15 @@ class ProductCreateUpdateSerializer(serializers.ModelSerializer):
         try:
             instance.save()
         except Exception as e:
-            if 'slug' in str(e):
+            if 'slug' in str(e).lower():
                 raise serializers.ValidationError({
                     'name': 'A product with this name already exists.'
                 })
             raise
+        
+        # Update materials if provided (materials is now a queryset from validate())
+        if materials is not None:
+            instance.materials.set(materials)
         
         # Handle image uploads (add new images to existing ones)
         if images:

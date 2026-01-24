@@ -39,7 +39,7 @@ export default function WhyChooseSection() {
       );
     };
     marqueeAnimation();
-    
+
     const activeRef = tabRefs[activeTab].current;
     if (activeRef) {
       setIndicatorStyle({
@@ -167,21 +167,21 @@ export default function WhyChooseSection() {
   const currentContent = tabContent[activeTab];
 
   return (
-    <section className="py-12 md:py-20 relative px-3 sm:px-5 md:px-10 rounded-[3%] bg-gray-50 overflow-hidden">
+    <section className="py-12   md:py-20 relative px-3 sm:px-5 md:px-10 rounded-[50px] bg-gray-50 overflow-hidden ">
       {/* Left Marquee */}
       <div className="absolute left-0 top-0 h-full flex overflow-hidden z-0 opacity-30 md:opacity-100">
         <div ref={firstText} className="flex flex-col">
           {[...Array(10)].map((_, i) => (
             <div key={i} className="flex flex-col items-center gap-2 md:gap-4 mb-2 md:mb-4">
-              <span className="text-metal-shine text-2xl md:text-[60px] font-bold hover:scale-110 hover:py-2 transition-all duration-300" style={{writingMode: 'vertical-rl', fontFamily: 'Unbounded, sans-serif'}}>
+              <span className="text-metal-shine text-2xl md:text-[60px] font-bold hover:scale-110 hover:py-2 transition-all duration-300" style={{ writingMode: 'vertical-rl', fontFamily: 'Unbounded, sans-serif' }}>
                 FABRICATING
               </span>
               <span className="text-gray-400 text-xl md:text-3xl">•</span>
-              <span className="text-metal-shine text-2xl md:text-[60px] font-bold hover:scale-110 hover:py-2 transition-all duration-300" style={{writingMode: 'vertical-rl', fontFamily: 'Unbounded, sans-serif'}}>
+              <span className="text-metal-shine text-2xl md:text-[60px] font-bold hover:scale-110 hover:py-2 transition-all duration-300" style={{ writingMode: 'vertical-rl', fontFamily: 'Unbounded, sans-serif' }}>
                 DESIGN
               </span>
               <span className="text-gray-400 text-xl md:text-3xl">•</span>
-              <span className="text-metal-shine text-2xl md:text-[60px] font-bold hover:scale-110 hover:py-2 transition-all duration-300" style={{writingMode: 'vertical-rl', fontFamily: 'Unbounded, sans-serif'}}>
+              <span className="text-metal-shine text-2xl md:text-[60px] font-bold hover:scale-110 hover:py-2 transition-all duration-300" style={{ writingMode: 'vertical-rl', fontFamily: 'Unbounded, sans-serif' }}>
                 CONTRACTING
               </span>
               <span className="text-gray-400 text-xl md:text-3xl">•</span>
@@ -195,15 +195,15 @@ export default function WhyChooseSection() {
         <div ref={secondText} className="flex flex-col">
           {[...Array(10)].map((_, i) => (
             <div key={i} className="flex flex-col items-center gap-2 md:gap-4 mb-2 md:mb-4">
-              <span className="text-metal-shine text-2xl md:text-[60px] font-bold hover:scale-110 hover:py-2 transition-all duration-300" style={{writingMode: 'vertical-rl', fontFamily: 'Unbounded, sans-serif'}}>
+              <span className="text-metal-shine text-2xl md:text-[60px] font-bold hover:scale-110 hover:py-2 transition-all duration-300" style={{ writingMode: 'vertical-rl', fontFamily: 'Unbounded, sans-serif' }}>
                 MANAGEMENT
               </span>
               <span className="text-gray-400 text-xl md:text-3xl">•</span>
-              <span className="text-metal-shine text-2xl md:text-[60px] font-bold hover:scale-110 hover:py-2 transition-all duration-300" style={{writingMode: 'vertical-rl', fontFamily: 'Unbounded, sans-serif'}}>
+              <span className="text-metal-shine text-2xl md:text-[60px] font-bold hover:scale-110 hover:py-2 transition-all duration-300" style={{ writingMode: 'vertical-rl', fontFamily: 'Unbounded, sans-serif' }}>
                 SELF PERFORM
               </span>
               <span className="text-gray-400 text-xl md:text-3xl">•</span>
-              <span className="text-metal-shine text-2xl md:text-[60px] font-bold hover:scale-110 hover:py-2 transition-all duration-300" style={{writingMode: 'vertical-rl', fontFamily: 'Unbounded, sans-serif'}}>
+              <span className="text-metal-shine text-2xl md:text-[60px] font-bold hover:scale-110 hover:py-2 transition-all duration-300" style={{ writingMode: 'vertical-rl', fontFamily: 'Unbounded, sans-serif' }}>
                 CONTRACTING
               </span>
               <span className="text-gray-400 text-xl md:text-3xl">•</span>
@@ -240,9 +240,9 @@ export default function WhyChooseSection() {
                 : 'text-gray-700 hover:text-gray-900'
                 }`}
             >
-              <FaCube className="text-base md:hidden" />
-              <span className="hidden md:inline">Project manufacturing</span>
-              <span className="md:hidden text-xs">Project</span>
+              <FaCube className="text-base lg:hidden" />
+              <span className="hidden lg:inline">Project manufacturing</span>
+              <span className="lg:hidden text-xs"></span>
             </button>
             <button
               ref={tabRefs.series}
@@ -252,9 +252,9 @@ export default function WhyChooseSection() {
                 : 'text-gray-700 hover:text-gray-900'
                 }`}
             >
-              <FaIndustry className="text-base md:hidden" />
-              <span className="hidden md:inline">Series manufacturing</span>
-              <span className="md:hidden text-xs">Series</span>
+              <FaIndustry className="text-base lg:hidden" />
+              <span className="hidden lg:inline">Series manufacturing</span>
+              <span className="lg:hidden text-xs"></span>
             </button>
             <button
               ref={tabRefs.prototyping}
@@ -264,14 +264,14 @@ export default function WhyChooseSection() {
                 : 'text-gray-700 hover:text-gray-900'
                 }`}
             >
-              <FaCog className="text-base md:hidden" />
-              <span className="hidden md:inline">Prototyping</span>
-              <span className="md:hidden text-xs">Proto</span>
+              <FaCog className="text-base lg:hidden" />
+              <span className="hidden lg:inline">Prototyping</span>
+              <span className="lg:hidden text-xs"></span>
             </button>
           </div>
         </div>
 
-   
+
 
         {/* Benefits Grid */}
         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 px-10 md:gap-5 mb-10 md:mb-16 cursor-pointer">
@@ -286,7 +286,7 @@ export default function WhyChooseSection() {
               <h3 className="text-lg  md:text-lg font-medium text-gray-900 mb-3 md:mb-5">
                 {benefit.title}
               </h3>
-              <p className="text-gray-600 text-sm leading-relaxed">
+              <p className="text-gray-600 text-justify text-sm leading-relaxed">
                 {benefit.description}
               </p>
             </div>
@@ -294,10 +294,14 @@ export default function WhyChooseSection() {
         </div>
 
         {/* CTA Button */}
+        a
         <div className="text-center px-4">
-          <button className="px-8 md:px-10 py-3 md:py-4 bg-[#f6423a] hover:bg-[#e03229] text-white rounded-full text-base md:text-lg font-semibold transition-colors shadow-lg hover:shadow-xl w-full sm:w-auto">
-            {currentContent.buttonText}
-          </button>
+          <a href="/getquote">
+            <button className=" py-3 md:py-4 bg-[#f6423a] hover:bg-[#e03229] text-white rounded-full text-base md:text-lg font-semibold transition-colors shadow-lg hover:shadow-xl px-8 sm:w-auto">
+              Get Quote
+            </button>
+          </a>
+
         </div>
       </div>
 

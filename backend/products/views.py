@@ -11,12 +11,12 @@ from rest_framework import filters
 from accounts.utils.responses import success_response, error_response
 
 from .models import (
-    Category, Product, Review, QuotationRequest, ServiceBooking
+    Category, Product, Review, QuotationRequest, ServiceBooking,Material, Specification, Product
 )
 from .serializers import (
     CategorySerializer, ProductListSerializer, ProductDetailSerializer,
     ProductCreateUpdateSerializer, ReviewSerializer, ReviewCreateSerializer, 
-    QuotationRequestSerializer, ServiceBookingSerializer
+    QuotationRequestSerializer, ServiceBookingSerializer,MaterialSerializer, SpecificationSerializer
 )
 from .filters import ProductFilter
 
@@ -643,3 +643,472 @@ class SearchView(APIView):
             f"Found {len(serializer.data)} results",
             {'results': serializer.data, 'query': query}
         )
+
+# ============= MATERIAL VIEWS =============
+
+class MaterialListCreateView(APIView):
+    """List all materials or create a new one (Create requires authentication)"""
+    permission_classes = []  # Custom permission in methods
+    parser_classes = [JSONParser, MultiPartParser, FormParser]
+
+    def get(self, request, *args, **kwargs):
+        """Get all materials (public)"""
+        materials = Material.objects.all()
+        serializer = MaterialSerializer(materials, many=True, context={'request': request})
+        return success_response(
+            f"Found {len(serializer.data)} materials",
+            {'results': serializer.data}
+        )
+
+    def post(self, request, *args, **kwargs):
+        """Create a new material (admin/staff only)"""
+        # Require authentication
+        if not is_admin_or_staff(request.user):
+            return error_response(
+                "You do not have permission to create materials. Admin/Staff access required.",
+                status_code=status.HTTP_403_FORBIDDEN
+            )
+        
+        serializer = MaterialSerializer(data=request.data, context={'request': request})
+        if not serializer.is_valid():
+            return error_response("Invalid material data", serializer.errors)
+        
+        serializer.save()
+        return success_response("Material created successfully", serializer.data, status.HTTP_201_CREATED)
+
+
+class MaterialDetailView(APIView):
+    """Retrieve, update, or delete a specific material (Update/Delete requires authentication)"""
+    permission_classes = []  # Custom permission in methods
+    parser_classes = [JSONParser, MultiPartParser, FormParser]
+
+    def get(self, request, pk, *args, **kwargs):
+        """Get specific material (public)"""
+        material = get_object_or_404(Material, pk=pk)
+        serializer = MaterialSerializer(material, context={'request': request})
+        return success_response("Material retrieved", serializer.data)
+
+    def put(self, request, pk, *args, **kwargs):
+        """Update material (admin/staff only)"""
+        # Require authentication
+        if not is_admin_or_staff(request.user):
+            return error_response(
+                "You do not have permission to update materials. Admin/Staff access required.",
+                status_code=status.HTTP_403_FORBIDDEN
+            )
+        
+        material = get_object_or_404(Material, pk=pk)
+        serializer = MaterialSerializer(material, data=request.data, partial=True, context={'request': request})
+        if not serializer.is_valid():
+            return error_response("Invalid material data", serializer.errors)
+        
+        serializer.save()
+        return success_response("Material updated", serializer.data)
+
+    def patch(self, request, pk, *args, **kwargs):
+        """Partially update material (admin/staff only)"""
+        # Require authentication
+        if not is_admin_or_staff(request.user):
+            return error_response(
+                "You do not have permission to update materials. Admin/Staff access required.",
+                status_code=status.HTTP_403_FORBIDDEN
+            )
+        
+        material = get_object_or_404(Material, pk=pk)
+        serializer = MaterialSerializer(material, data=request.data, partial=True, context={'request': request})
+        if not serializer.is_valid():
+            return error_response("Invalid material data", serializer.errors)
+        
+        serializer.save()
+        return success_response("Material updated", serializer.data)
+
+    def delete(self, request, pk, *args, **kwargs):
+        """Delete material (admin/staff only)"""
+        # Require authentication
+        if not is_admin_or_staff(request.user):
+            return error_response(
+                "You do not have permission to delete materials. Admin/Staff access required.",
+                status_code=status.HTTP_403_FORBIDDEN
+            )
+        
+        material = get_object_or_404(Material, pk=pk)
+        material.delete()
+        return success_response("Material deleted", status_code=status.HTTP_204_NO_CONTENT)
+
+
+# ============= SPECIFICATION VIEWS =============
+
+class SpecificationListCreateView(APIView):
+    """List all specifications or create a new one (Create requires authentication)"""
+    permission_classes = []  # Custom permission in methods
+    parser_classes = [JSONParser, MultiPartParser, FormParser]
+
+    def get(self, request, *args, **kwargs):
+        """Get all specifications (public)"""
+        specifications = Specification.objects.all()
+        serializer = SpecificationSerializer(specifications, many=True)
+        return success_response(
+            f"Found {len(serializer.data)} specifications",
+            {'results': serializer.data}
+        )
+
+    def post(self, request, *args, **kwargs):
+        """Create a new specification (admin/staff only)"""
+        # Require authentication
+        if not is_admin_or_staff(request.user):
+            return error_response(
+                "You do not have permission to create specifications. Admin/Staff access required.",
+                status_code=status.HTTP_403_FORBIDDEN
+            )
+        
+        serializer = SpecificationSerializer(data=request.data)
+        if not serializer.is_valid():
+            return error_response("Invalid specification data", serializer.errors)
+        
+        serializer.save()
+        return success_response("Specification created successfully", serializer.data, status.HTTP_201_CREATED)
+
+
+class SpecificationDetailView(APIView):
+    """Retrieve, update, or delete a specific specification (Update/Delete requires authentication)"""
+    permission_classes = []  # Custom permission in methods
+    parser_classes = [JSONParser, MultiPartParser, FormParser]
+
+    def get(self, request, pk, *args, **kwargs):
+        """Get specific specification (public)"""
+        specification = get_object_or_404(Specification, pk=pk)
+        serializer = SpecificationSerializer(specification)
+        return success_response("Specification retrieved", serializer.data)
+
+    def put(self, request, pk, *args, **kwargs):
+        """Update specification (admin/staff only)"""
+        # Require authentication
+        if not is_admin_or_staff(request.user):
+            return error_response(
+                "You do not have permission to update specifications. Admin/Staff access required.",
+                status_code=status.HTTP_403_FORBIDDEN
+            )
+        
+        specification = get_object_or_404(Specification, pk=pk)
+        serializer = SpecificationSerializer(specification, data=request.data, partial=True)
+        if not serializer.is_valid():
+            return error_response("Invalid specification data", serializer.errors)
+        
+        serializer.save()
+        return success_response("Specification updated", serializer.data)
+
+    def patch(self, request, pk, *args, **kwargs):
+        """Partially update specification (admin/staff only)"""
+        # Require authentication
+        if not is_admin_or_staff(request.user):
+            return error_response(
+                "You do not have permission to update specifications. Admin/Staff access required.",
+                status_code=status.HTTP_403_FORBIDDEN
+            )
+        
+        specification = get_object_or_404(Specification, pk=pk)
+        serializer = SpecificationSerializer(specification, data=request.data, partial=True)
+        if not serializer.is_valid():
+            return error_response("Invalid specification data", serializer.errors)
+        
+        serializer.save()
+        return success_response("Specification updated", serializer.data)
+
+    def delete(self, request, pk, *args, **kwargs):
+        """Delete specification (admin/staff only)"""
+        # Require authentication
+        if not is_admin_or_staff(request.user):
+            return error_response(
+                "You do not have permission to delete specifications. Admin/Staff access required.",
+                status_code=status.HTTP_403_FORBIDDEN
+            )
+        
+        specification = get_object_or_404(Specification, pk=pk)
+        specification.delete()
+        return success_response("Specification deleted", status_code=status.HTTP_204_NO_CONTENT)
+
+
+# ============= PRODUCT SPECIFICATIONS VIEWS =============
+
+class ProductSpecificationListCreateView(APIView):
+    """List specifications for a product or add a new one"""
+    permission_classes = []  # Custom permission in methods
+    parser_classes = [JSONParser, MultiPartParser, FormParser]
+
+    def get(self, request, slug, *args, **kwargs):
+        """Get all specifications for a product (public)"""
+        product = get_object_or_404(Product, slug=slug)
+        specifications = product.specifications.all()
+        serializer = SpecificationSerializer(specifications, many=True)
+        return success_response(
+            f"Found {len(serializer.data)} specifications",
+            {'results': serializer.data}
+        )
+
+    def post(self, request, slug, *args, **kwargs):
+        """Add a specification to a product (admin/staff only)"""
+        # Require authentication
+        if not is_admin_or_staff(request.user):
+            return error_response(
+                "You do not have permission to add specifications. Admin/Staff access required.",
+                status_code=status.HTTP_403_FORBIDDEN
+            )
+        
+        product = get_object_or_404(Product, slug=slug)
+        
+        data = request.data.copy()
+        data['product'] = product.id
+        
+        serializer = SpecificationSerializer(data=data)
+        if not serializer.is_valid():
+            return error_response("Invalid specification data", serializer.errors)
+        
+        serializer.save()
+        return success_response("Specification added successfully", serializer.data, status.HTTP_201_CREATED)
+
+
+class ProductSpecificationDetailView(APIView):
+    """Retrieve, update, or delete a specific specification for a product"""
+    permission_classes = []  # Custom permission in methods
+    parser_classes = [JSONParser, MultiPartParser, FormParser]
+
+    def get(self, request, slug, spec_id, *args, **kwargs):
+        """Get specific specification for product (public)"""
+        product = get_object_or_404(Product, slug=slug)
+        specification = get_object_or_404(Specification, id=spec_id, product=product)
+        serializer = SpecificationSerializer(specification)
+        return success_response("Specification retrieved", serializer.data)
+
+    def put(self, request, slug, spec_id, *args, **kwargs):
+        """Update specification for product (admin/staff only)"""
+        # Require authentication
+        if not is_admin_or_staff(request.user):
+            return error_response(
+                "You do not have permission to update specifications. Admin/Staff access required.",
+                status_code=status.HTTP_403_FORBIDDEN
+            )
+        
+        product = get_object_or_404(Product, slug=slug)
+        specification = get_object_or_404(Specification, id=spec_id, product=product)
+        
+        serializer = SpecificationSerializer(specification, data=request.data, partial=True)
+        if not serializer.is_valid():
+            return error_response("Invalid specification data", serializer.errors)
+        
+        serializer.save()
+        return success_response("Specification updated", serializer.data)
+
+    def patch(self, request, slug, spec_id, *args, **kwargs):
+        """Partially update specification for product (admin/staff only)"""
+        # Require authentication
+        if not is_admin_or_staff(request.user):
+            return error_response(
+                "You do not have permission to update specifications. Admin/Staff access required.",
+                status_code=status.HTTP_403_FORBIDDEN
+            )
+        
+        product = get_object_or_404(Product, slug=slug)
+        specification = get_object_or_404(Specification, id=spec_id, product=product)
+        
+        serializer = SpecificationSerializer(specification, data=request.data, partial=True)
+        if not serializer.is_valid():
+            return error_response("Invalid specification data", serializer.errors)
+        
+        serializer.save()
+        return success_response("Specification updated", serializer.data)
+
+    def delete(self, request, slug, spec_id, *args, **kwargs):
+        """Delete specification for product (admin/staff only)"""
+        # Require authentication
+        if not is_admin_or_staff(request.user):
+            return error_response(
+                "You do not have permission to delete specifications. Admin/Staff access required.",
+                status_code=status.HTTP_403_FORBIDDEN
+            )
+        
+        product = get_object_or_404(Product, slug=slug)
+        specification = get_object_or_404(Specification, id=spec_id, product=product)
+        specification.delete()
+        return success_response("Specification deleted", status_code=status.HTTP_204_NO_CONTENT)
+
+        # ============= PRODUCT MATERIALS VIEWS =============
+
+class ProductMaterialListCreateView(APIView):
+    """List materials for a product or add new material to product"""
+    permission_classes = []  # Custom permission in methods
+    parser_classes = [JSONParser, MultiPartParser, FormParser]
+
+    def get(self, request, slug, *args, **kwargs):
+        """Get all materials for a product (public)"""
+        product = get_object_or_404(Product, slug=slug)
+        materials = product.materials.all()
+        serializer = MaterialSerializer(materials, many=True, context={'request': request})
+        return success_response(
+            f"Found {len(serializer.data)} materials",
+            {'results': serializer.data}
+        )
+
+    def post(self, request, slug, *args, **kwargs):
+        """Add a material to a product (admin/staff only)"""
+        # Require authentication
+        if not is_admin_or_staff(request.user):
+            return error_response(
+                "You do not have permission to add materials to products. Admin/Staff access required.",
+                status_code=status.HTTP_403_FORBIDDEN
+            )
+        
+        product = get_object_or_404(Product, slug=slug)
+        
+        # Get material ID from request
+        material_id = request.data.get('material_id')
+        
+        if not material_id:
+            return error_response("material_id is required")
+        
+        try:
+            material = Material.objects.get(id=material_id)
+        except Material.DoesNotExist:
+            return error_response(f"Material with ID {material_id} does not exist")
+        
+        # Check if material already added to product
+        if product.materials.filter(id=material_id).exists():
+            return error_response("This material is already added to the product")
+        
+        # Add material to product
+        product.materials.add(material)
+        
+        serializer = MaterialSerializer(material, context={'request': request})
+        return success_response("Material added to product successfully", serializer.data, status.HTTP_201_CREATED)
+
+
+class ProductMaterialDetailView(APIView):
+    """Retrieve or remove a specific material from a product"""
+    permission_classes = []  # Custom permission in methods
+    parser_classes = [JSONParser, MultiPartParser, FormParser]
+
+    def get(self, request, slug, material_id, *args, **kwargs):
+        """Get specific material for product (public)"""
+        product = get_object_or_404(Product, slug=slug)
+        material = get_object_or_404(Material, id=material_id)
+        
+        # Check if material is in product
+        if not product.materials.filter(id=material_id).exists():
+            return error_response(
+                f"Material with ID {material_id} is not associated with this product",
+                status_code=status.HTTP_404_NOT_FOUND
+            )
+        
+        serializer = MaterialSerializer(material, context={'request': request})
+        return success_response("Material retrieved", serializer.data)
+
+    def delete(self, request, slug, material_id, *args, **kwargs):
+        """Remove material from product (admin/staff only)"""
+        # Require authentication
+        if not is_admin_or_staff(request.user):
+            return error_response(
+                "You do not have permission to remove materials from products. Admin/Staff access required.",
+                status_code=status.HTTP_403_FORBIDDEN
+            )
+        
+        product = get_object_or_404(Product, slug=slug)
+        material = get_object_or_404(Material, id=material_id)
+        
+        # Check if material is in product
+        if not product.materials.filter(id=material_id).exists():
+            return error_response(
+                f"Material with ID {material_id} is not associated with this product",
+                status_code=status.HTTP_404_NOT_FOUND
+            )
+        
+        # Remove material from product
+        product.materials.remove(material)
+        
+        return success_response("Material removed from product", status_code=status.HTTP_204_NO_CONTENT)
+
+
+# ============= GLOBAL MATERIALS VIEWS (Already exist, included for reference) =============
+
+class MaterialListCreateView(APIView):
+    """List all materials or create a new one (Create requires authentication)"""
+    permission_classes = []
+    parser_classes = [JSONParser, MultiPartParser, FormParser]
+
+    def get(self, request, *args, **kwargs):
+        """Get all materials (public)"""
+        materials = Material.objects.all()
+        serializer = MaterialSerializer(materials, many=True, context={'request': request})
+        return success_response(
+            f"Found {len(serializer.data)} materials",
+            {'results': serializer.data}
+        )
+
+    def post(self, request, *args, **kwargs):
+        """Create a new material (admin/staff only)"""
+        if not is_admin_or_staff(request.user):
+            return error_response(
+                "You do not have permission to create materials. Admin/Staff access required.",
+                status_code=status.HTTP_403_FORBIDDEN
+            )
+        
+        serializer = MaterialSerializer(data=request.data, context={'request': request})
+        if not serializer.is_valid():
+            return error_response("Invalid material data", serializer.errors)
+        
+        serializer.save()
+        return success_response("Material created successfully", serializer.data, status.HTTP_201_CREATED)
+
+
+class MaterialDetailView(APIView):
+    """Retrieve, update, or delete a specific material (Update/Delete requires authentication)"""
+    permission_classes = []
+    parser_classes = [JSONParser, MultiPartParser, FormParser]
+
+    def get(self, request, pk, *args, **kwargs):
+        """Get specific material (public)"""
+        material = get_object_or_404(Material, pk=pk)
+        serializer = MaterialSerializer(material, context={'request': request})
+        return success_response("Material retrieved", serializer.data)
+
+    def put(self, request, pk, *args, **kwargs):
+        """Update material (admin/staff only)"""
+        if not is_admin_or_staff(request.user):
+            return error_response(
+                "You do not have permission to update materials. Admin/Staff access required.",
+                status_code=status.HTTP_403_FORBIDDEN
+            )
+        
+        material = get_object_or_404(Material, pk=pk)
+        serializer = MaterialSerializer(material, data=request.data, partial=True, context={'request': request})
+        if not serializer.is_valid():
+            return error_response("Invalid material data", serializer.errors)
+        
+        serializer.save()
+        return success_response("Material updated", serializer.data)
+
+    def patch(self, request, pk, *args, **kwargs):
+        """Partially update material (admin/staff only)"""
+        if not is_admin_or_staff(request.user):
+            return error_response(
+                "You do not have permission to update materials. Admin/Staff access required.",
+                status_code=status.HTTP_403_FORBIDDEN
+            )
+        
+        material = get_object_or_404(Material, pk=pk)
+        serializer = MaterialSerializer(material, data=request.data, partial=True, context={'request': request})
+        if not serializer.is_valid():
+            return error_response("Invalid material data", serializer.errors)
+        
+        serializer.save()
+        return success_response("Material updated", serializer.data)
+
+    def delete(self, request, pk, *args, **kwargs):
+        """Delete material (admin/staff only)"""
+        if not is_admin_or_staff(request.user):
+            return error_response(
+                "You do not have permission to delete materials. Admin/Staff access required.",
+                status_code=status.HTTP_403_FORBIDDEN
+            )
+        
+        material = get_object_or_404(Material, pk=pk)
+        material.delete()
+        return success_response("Material deleted", status_code=status.HTTP_204_NO_CONTENT)

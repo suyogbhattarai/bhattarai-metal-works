@@ -19,7 +19,7 @@
 }
 
 body {
-  background: var(--background);
+
   color: var(--foreground);
   font-family: var(--font-unbounded), Arial, Helvetica, sans-serif;
 }
@@ -67,4 +67,53 @@ body {
 .marquee-text:hover {
   -webkit-text-stroke: 1px #f6423a;
   color: #f6423a;
+}
+@keyframes slideIn {
+    from {
+        transform: translateY(20px);
+        opacity: 0;
+    }
+    to {
+        transform: translateY(0);
+        opacity: 1;
+    }
+}
+
+@keyframes slideInRight {
+    from {
+        transform: translateX(100%);
+        opacity: 0;
+    }
+    to {
+        transform: translateX(0);
+        opacity: 1;
+    }
+}
+
+@keyframes shrink {
+    from {
+        width: 100%;
+    }
+    to {
+        width: 0%;
+    }
+}
+
+.animate-slideIn {
+    animation: slideIn 0.3s ease-out;
+}
+
+@media (min-width: 640px) {
+    .animate-slideIn {
+        animation: slideInRight 0.3s ease-out;
+    }
+}
+
+.animate-shrink {
+    animation: shrink linear;
+}
+
+/* iOS safe-area support */
+.safe-bottom {
+    padding-bottom: env(safe-area-inset-bottom);
 }
