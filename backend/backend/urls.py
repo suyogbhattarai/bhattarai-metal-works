@@ -21,6 +21,9 @@ urlpatterns = [
     # This 'accounts.urls' includes your custom /register/ and /login/ endpoints
     path('api/accounts/', include('accounts.urls')),
     path('api/products/', include('products.urls')),
+    path('api/hr/', include('hr.urls')),
+    path('api/projects/', include('projects.urls')),
+    path('api/portfolio/', include('portfolio.urls')),
     # JWT token endpoint for refreshing the access token (login is now handled by accounts.views.LoginView)
     path('api/token/refresh/', TokenRefreshView.as_view(), name='token_refresh'),
 ]

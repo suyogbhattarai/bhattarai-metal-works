@@ -23,6 +23,12 @@ export default function ProductCard({ product, onDelete }: ProductCardProps) {
                         </div>
                     )}
 
+                    {!product.is_active && (
+                        <div className="absolute top-12 left-3 z-10 bg-red-500/20 text-red-400 backdrop-blur-md px-2.5 py-1 rounded-lg text-xs font-black uppercase flex items-center gap-1 border border-red-500/20">
+                            Inactive
+                        </div>
+                    )}
+
                     {/* Action Buttons Overlay - Only Delete now for quick action */}
                     <div className="absolute top-3 right-3 z-10 flex gap-2 opacity-0 group-hover:opacity-100 transition-opacity duration-200 transform translate-y-[-10px] group-hover:translate-y-0">
                         <button
@@ -40,7 +46,7 @@ export default function ProductCard({ product, onDelete }: ProductCardProps) {
 
                     {primaryImage ? (
                         <img
-                            src={getApiImageUrl(primaryImage)}
+                            src={getApiImageUrl(primaryImage) || undefined}
                             alt={product.name}
                             className="w-full h-full object-cover transition-transform duration-500 group-hover:scale-105"
                         />
@@ -82,6 +88,6 @@ export default function ProductCard({ product, onDelete }: ProductCardProps) {
                     </div>
                 </div>
             </div>
-        </Link>
+        </Link >
     );
 }

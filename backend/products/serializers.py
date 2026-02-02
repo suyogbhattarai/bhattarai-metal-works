@@ -2,8 +2,93 @@ from rest_framework import serializers
 from django.db import models
 from .models import (
     Category, Material, Product, ProductImage, Specification,
-    Review, QuotationRequest, QuotationAttachment, ServiceBooking
+    Review, QuotationRequest, QuotationAttachment, ServiceBooking,
+    StoreService, StoreServiceImage, SearchQuery, ProductView
 )
+
+# ... (Previous code)
+
+class StoreServiceImageSerializer(serializers.ModelSerializer):
+    image = serializers.ImageField(required=False, allow_null=True)
+
+    class Meta:
+        model = StoreServiceImage
+        fields = ['id', 'image', 'alt_text', 'is_primary', 'order']
+
+
+class StoreServiceSerializer(serializers.ModelSerializer):
+    images = StoreServiceImageSerializer(many=True, read_only=True)
+    upload_images = serializers.ListField(
+        child=serializers.ImageField(),
+        write_only=True,
+        required=False,
+        help_text="List of New image files to upload"
+    )
+    remove_images = serializers.ListField(
+        child=serializers.IntegerField(),
+        write_only=True,
+        required=False,
+        help_text="List of image IDs to remove"
+    )
+
+    def validate_upload_images(self, value):
+        # If it's a single file instead of a list, wrap it in a list
+        if value and not isinstance(value, list):
+            return [value]
+        return value
+
+    def validate_remove_images(self, value):
+        # If it's a single ID instead of a list, wrap it in a list
+        if value and not isinstance(value, list):
+            return [value]
+        return value
+
+    class Meta:
+        model = StoreService
+        fields = ['id', 'title', 'slug', 'category', 'description', 
+                  'icon_name', 'image', 'images', 'upload_images', 'remove_images',
+                  'is_active', 'order', 
+                  'meta_title', 'meta_description', 'meta_keywords', 'focus_keyword',
+                  'created_at', 'updated_at']
+        read_only_fields = ['slug', 'created_at', 'updated_at']
+
+    def create(self, validated_data):
+        upload_images = validated_data.pop('upload_images', [])
+        remove_images = validated_data.pop('remove_images', []) # Not used in create but pop to be safe
+        service = StoreService.objects.create(**validated_data)
+        
+        for idx, img in enumerate(upload_images):
+            StoreServiceImage.objects.create(
+                service=service,
+                image=img,
+                order=idx,
+                is_primary=(idx==0)
+            )
+        return service
+
+    def update(self, instance, validated_data):
+        upload_images = validated_data.pop('upload_images', [])
+        remove_images = validated_data.pop('remove_images', [])
+        
+        for attr, value in validated_data.items():
+            setattr(instance, attr, value)
+        instance.save()
+
+        if remove_images:
+            instance.images.filter(id__in=remove_images).delete()
+        
+        if upload_images:
+            # Append new images
+            current_max_order = instance.images.aggregate(models.Max('order'))['order__max']
+            current_max_order = current_max_order if current_max_order is not None else -1
+            
+            for idx, img in enumerate(upload_images):
+                StoreServiceImage.objects.create(
+                    service=instance,
+                    image=img,
+                    order=current_max_order + idx + 1
+                )
+        return instance
 
 
 class CategorySerializer(serializers.ModelSerializer):
@@ -97,7 +182,7 @@ class ProductListSerializer(serializers.ModelSerializer):
         fields = ['id', 'name', 'slug', 'category', 'description', 'product_type',
                   'base_price', 'is_price_visible', 'primary_image',
                   'is_customizable', 'is_in_stock', 'is_low_stock', 'is_featured',
-                  'average_rating', 'review_count', 'created_at']
+                  'average_rating', 'review_count', 'created_at', 'is_active']
 
     def get_primary_image(self, obj):
         primary_img = obj.images.filter(is_primary=True).first()
@@ -138,7 +223,7 @@ class ProductDetailSerializer(serializers.ModelSerializer):
                   'length', 'width', 'height', 'weight', 'is_customizable',
                   'customization_note', 'stock_quantity', 'is_in_stock', 'is_low_stock',
                   'specifications', 'reviews', 'average_rating', 'review_count',
-                  'is_featured', 'created_at', 'updated_at']
+                  'is_featured', 'meta_description', 'meta_keywords', 'created_at', 'updated_at']
 
     def get_average_rating(self, obj):
         approved_reviews = obj.reviews.filter(is_approved=True)
@@ -189,8 +274,9 @@ class ProductCreateUpdateSerializer(serializers.ModelSerializer):
         fields = ['id', 'name', 'slug', 'category', 'category_detail', 'description', 'product_type',
                   'base_price', 'is_price_visible', 'materials', 'materials_detail', 'length', 'width',
                   'height', 'weight', 'is_customizable', 'customization_note',
+                  'height', 'weight', 'is_customizable', 'customization_note',
                   'stock_quantity', 'low_stock_threshold', 'is_active', 'is_featured',
-                  'meta_description', 'meta_keywords', 'images', 'alt_texts',
+                  'meta_title', 'meta_description', 'meta_keywords', 'focus_keyword', 'images', 'alt_texts',
                   'primary_image_index', 'specifications', 'created_at', 'updated_at']
         read_only_fields = ['slug', 'created_at', 'updated_at', 'category_detail', 'materials_detail']
 
@@ -382,11 +468,11 @@ class QuotationRequestSerializer(serializers.ModelSerializer):
     class Meta:
         model = QuotationRequest
         fields = [
-            'id', 'user_name', 'product', 'product_name', 'quote_type',
+            'id', 'user_name', 'product', 'product_name', 'service', 'service_name', 'quote_type',
             'guest_name', 'guest_email', 'guest_phone', 'project_title',
             'service_type', 'description', 'quantity', 'urgency', 'custom_dimensions',
             'preferred_materials', 'additional_requirements', 'budget_range_min',
-            'budget_range_max', 'required_by', 'status', 'quoted_price',
+            'budget_range_max', 'required_by', 'status', 'quoted_price', 'final_adjusted_price',
             'quoted_delivery_time', 'admin_notes', 'quote_valid_until',
             'attachments', 'upload_files', 'created_at', 'updated_at', 'quoted_at'
         ]
@@ -459,3 +545,20 @@ class ServiceBookingSerializer(serializers.ModelSerializer):
     def create(self, validated_data):
         validated_data['user'] = self.context['request'].user
         return super().create(validated_data)
+
+
+
+
+
+class SearchQuerySerializer(serializers.ModelSerializer):
+    class Meta:
+        model = SearchQuery
+        fields = '__all__'
+
+
+class ProductViewSerializer(serializers.ModelSerializer):
+    product_name = serializers.CharField(source='product.name', read_only=True)
+
+    class Meta:
+        model = ProductView
+        fields = '__all__'

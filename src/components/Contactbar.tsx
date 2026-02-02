@@ -5,7 +5,7 @@ import { FaPhone, FaEnvelope, FaFacebookF, FaTwitter, FaInstagram, FaYoutube } f
 function Contactbar() {
   return (
     <div className="">
-      <div className="w-full fixed top-0 left-0 bg-[#071236]/30 backdrop-blur-sm text-white py-2  z-50">     
+      <div className="w-full fixed top-0 left-0 bg-white/20 backdrop-blur-sm text-white py-2  z-50">     
        <div className="flex justify-between lg:px-15 md:px-10 sm:px-5 px-3 items-center">
         {/* Contact Info */}
         <div className="flex items-center gap-6">

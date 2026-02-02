@@ -82,8 +82,10 @@ class Product(models.Model):
     is_featured = models.BooleanField(default=False)
     
     # SEO
+    meta_title = models.CharField(max_length=200, blank=True)
     meta_description = models.CharField(max_length=160, blank=True)
     meta_keywords = models.CharField(max_length=200, blank=True)
+    focus_keyword = models.CharField(max_length=100, blank=True)
     
     # Timestamps
     created_at = models.DateTimeField(auto_now_add=True)
@@ -182,6 +184,7 @@ class QuotationRequest(models.Model):
         ('quoted', 'Quote Sent'),
         ('accepted', 'Accepted'),
         ('rejected', 'Rejected'),
+        ('completed', 'Completed/Fulfilled'),
         ('expired', 'Expired'),
     ]
 
@@ -200,6 +203,7 @@ class QuotationRequest(models.Model):
     # Customer Info
     user = models.ForeignKey(settings.AUTH_USER_MODEL, related_name='quotation_requests', on_delete=models.CASCADE, null=True, blank=True)
     product = models.ForeignKey(Product, related_name='quotation_requests', on_delete=models.CASCADE, null=True, blank=True)
+    service = models.ForeignKey('StoreService', related_name='quotation_requests', on_delete=models.SET_NULL, null=True, blank=True)
     
     # Quote Type
     quote_type = models.CharField(max_length=20, choices=QUOTE_TYPE_CHOICES, default='instant')
@@ -232,7 +236,8 @@ class QuotationRequest(models.Model):
     status = models.CharField(max_length=20, choices=STATUS_CHOICES, default='pending')
     
     # Quote Details (filled by admin)
-    quoted_price = models.DecimalField(max_digits=10, decimal_places=2, null=True, blank=True)
+    quoted_price = models.DecimalField(max_digits=12, decimal_places=2, null=True, blank=True)
+    final_adjusted_price = models.DecimalField(max_digits=12, decimal_places=2, null=True, blank=True, help_text="Final price after negotiation/fulfillment")
     quoted_delivery_time = models.CharField(max_length=100, blank=True)
     admin_notes = models.TextField(blank=True)
     quote_valid_until = models.DateField(null=True, blank=True)
@@ -301,3 +306,79 @@ class ServiceBooking(models.Model):
 
     def __str__(self):
         return f"Booking #{self.id} - {self.user.username} - {self.service_type}"
+
+
+class StoreService(models.Model):
+    """Dynamic services offered by the company"""
+    title = models.CharField(max_length=200)
+    slug = models.SlugField(max_length=200, unique=True, blank=True)
+    category = models.CharField(max_length=100, help_text="e.g., Construction, Fabrication, Furniture")
+    description = models.TextField()
+    icon_name = models.CharField(max_length=50, help_text="React icon name to use", blank=True)
+    image = models.ImageField(upload_to='services/', blank=True, null=True)
+    is_active = models.BooleanField(default=True)
+    order = models.IntegerField(default=0)
+    
+    # SEO
+    meta_title = models.CharField(max_length=200, blank=True)
+    meta_description = models.CharField(max_length=160, blank=True)
+    meta_keywords = models.CharField(max_length=200, blank=True)
+    focus_keyword = models.CharField(max_length=100, blank=True)
+    
+    created_at = models.DateTimeField(auto_now_add=True)
+    updated_at = models.DateTimeField(auto_now=True)
+
+    class Meta:
+        ordering = ['order', 'title']
+
+    def save(self, *args, **kwargs):
+        if not self.slug:
+            self.slug = slugify(self.title)
+        super().save(*args, **kwargs)
+
+    def __str__(self):
+        return self.title
+
+
+class StoreServiceImage(models.Model):
+    """Multiple images for each service"""
+    service = models.ForeignKey(StoreService, related_name='images', on_delete=models.CASCADE)
+    image = models.ImageField(upload_to='services/gallery/')
+    alt_text = models.CharField(max_length=200, blank=True)
+    is_primary = models.BooleanField(default=False)
+    order = models.IntegerField(default=0)
+    created_at = models.DateTimeField(auto_now_add=True)
+
+    class Meta:
+        ordering = ['order', '-is_primary']
+    
+    def __str__(self):
+        return f"{self.service.title} - Image {self.order}"
+
+
+class SearchQuery(models.Model):
+    """Tracking user search behavior for analytics"""
+    query = models.CharField(max_length=255)
+    user = models.ForeignKey(settings.AUTH_USER_MODEL, on_delete=models.SET_NULL, null=True, blank=True)
+    ip_address = models.GenericIPAddressField(null=True, blank=True)
+    count = models.PositiveIntegerField(default=1)
+    last_searched = models.DateTimeField(auto_now=True)
+    created_at = models.DateTimeField(auto_now_add=True)
+
+    class Meta:
+        verbose_name_plural = "Search Queries"
+        ordering = ['-last_searched']
+
+    def __str__(self):
+        return f"{self.query} ({self.count})"
+
+
+class ProductView(models.Model):
+    """Tracking product views for analytics"""
+    product = models.ForeignKey(Product, on_delete=models.CASCADE, related_name='views')
+    user = models.ForeignKey(settings.AUTH_USER_MODEL, on_delete=models.SET_NULL, null=True, blank=True)
+    viewed_at = models.DateTimeField(auto_now_add=True)
+    ip_address = models.GenericIPAddressField(null=True, blank=True)
+
+    def __str__(self):
+        return f"View of {self.product.name} at {self.viewed_at}"

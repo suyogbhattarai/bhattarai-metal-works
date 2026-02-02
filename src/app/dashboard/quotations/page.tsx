@@ -9,14 +9,14 @@ import { useToast, ToastContainer } from '@/components/toast';
 import axiosInstance from '@/utils/lib/axios/axiosInstance';
 import { MdDescription, MdCheckCircle, MdCancel, MdPending, MdClose } from 'react-icons/md';
 import StatCard from '@/components/dashboard/StatCard';
+import Link from 'next/link';
+import { useRouter } from 'next/navigation';
 
 export default function QuotationsPage() {
     const dispatch = useDispatch();
-    const { quotations, loading } = useSelector((state: RootState) => state.products);
+    const { quotations, quotationsLoading: loading } = useSelector((state: RootState) => state.products);
     const { toasts, removeToast, showSuccess, showError } = useToast();
-    const [selectedQuotation, setSelectedQuotation] = useState<any>(null);
-    const [showModal, setShowModal] = useState(false);
-    const [updating, setUpdating] = useState(false);
+    const router = useRouter();
 
     useEffect(() => {
         loadQuotations();
@@ -31,31 +31,25 @@ export default function QuotationsPage() {
     };
 
     const handleView = (quotation: any) => {
-        setSelectedQuotation(quotation);
-        setShowModal(true);
-    };
-
-    const handleStatusUpdate = async (quotationId: number, status: string) => {
-        setUpdating(true);
-        try {
-            await axiosInstance.patch(`/products/quotations/${quotationId}/`, { status });
-            showSuccess(`Quotation ${status} successfully`);
-            loadQuotations();
-            setShowModal(false);
-        } catch (error: any) {
-            showError(error.response?.data?.message || 'Failed to update status');
-        } finally {
-            setUpdating(false);
-        }
+        router.push(`/dashboard/quotations/${quotation.id}`);
     };
 
     const columns = [
         { key: 'id', label: 'ID' },
-        { key: 'project_title', label: 'Project Title' },
+        {
+            key: 'project_title',
+            label: 'Project Title',
+            render: (value: string, row: any) => (
+                <div className="flex flex-col">
+                    <span className="font-medium text-white">{value}</span>
+                    <span className="text-xs text-gray-400">{row.product_name || 'General Inquiry'}</span>
+                </div>
+            )
+        },
         {
             key: 'customer',
             label: 'Customer',
-            render: (value: any, row: any) => value?.name || row.customer_name || 'N/A'
+            render: (value: any, row: any) => row.user_name || row.guest_name || 'N/A'
         },
         {
             key: 'created_at',
@@ -67,9 +61,9 @@ export default function QuotationsPage() {
             label: 'Status',
             render: (value: string) => (
                 <span className={`px-2.5 py-0.5 rounded-full text-xs font-medium border ${value === 'pending' ? 'border-yellow-500/50 text-yellow-400' :
-                        value === 'approved' ? 'border-green-500/50 text-green-400' :
-                            value === 'rejected' ? 'border-red-500/50 text-red-400' :
-                                'border-gray-500/50 text-gray-400'
+                    value === 'approved' ? 'border-green-500/50 text-green-400' :
+                        value === 'rejected' ? 'border-red-500/50 text-red-400' :
+                            'border-gray-500/50 text-gray-400'
                     }`}>
                     {value?.toUpperCase() || 'PENDING'}
                 </span>
@@ -82,9 +76,17 @@ export default function QuotationsPage() {
             <ToastContainer toasts={toasts} removeToast={removeToast} />
 
             <div className="space-y-6">
+                {/* Breadcrumb */}
                 <div>
-                    <h1 className="text-3xl font-bold text-white mb-2">Quotation Requests</h1>
-                    <p className="text-gray-400">Manage customer quotation requests</p>
+                    <div className="flex items-center gap-2 text-sm text-gray-400 mb-2">
+                        <Link href="/dashboard" className="hover:text-white transition">Dashboard</Link>
+                        <span>/</span>
+                        <span className="text-[#f6423a]">Quotation Requests</span>
+                    </div>
+                    <div>
+                        <h1 className="text-3xl font-bold text-white mb-2">Quotation Requests</h1>
+                        <p className="text-gray-400">Manage customer quotation requests</p>
+                    </div>
                 </div>
 
                 <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
@@ -115,96 +117,6 @@ export default function QuotationsPage() {
                     />
                 </div>
             </div>
-
-            {/* Detail Modal */}
-            {showModal && selectedQuotation && (
-                <div className="fixed inset-0 bg-black/50 backdrop-blur-sm z-50 flex items-center justify-center p-4">
-                    <div className="bg-[#111e48] rounded-xl p-6 max-w-2xl w-full max-h-[90vh] overflow-y-auto border border-white/10">
-                        <div className="flex items-center justify-between mb-6">
-                            <h2 className="text-xl font-bold text-white">Quotation Details</h2>
-                            <button onClick={() => setShowModal(false)} className="text-gray-400 hover:text-white transition">
-                                <MdClose size={24} />
-                            </button>
-                        </div>
-
-                        <div className="space-y-4">
-                            <div>
-                                <p className="text-gray-400 text-sm">Project Title</p>
-                                <p className="text-white font-semibold text-lg">{selectedQuotation.project_title}</p>
-                            </div>
-
-                            <div className="grid grid-cols-2 gap-4">
-                                <div>
-                                    <p className="text-gray-400 text-sm">Customer Name</p>
-                                    <p className="text-white">{selectedQuotation.customer?.name || selectedQuotation.customer_name}</p>
-                                </div>
-                                <div>
-                                    <p className="text-gray-400 text-sm">Contact</p>
-                                    <p className="text-white">{selectedQuotation.contact_number}</p>
-                                </div>
-                            </div>
-
-                            <div>
-                                <p className="text-gray-400 text-sm">Email</p>
-                                <p className="text-white">{selectedQuotation.contact_email}</p>
-                            </div>
-
-                            <div>
-                                <p className="text-gray-400 text-sm">Project Description</p>
-                                <p className="text-white">{selectedQuotation.project_description}</p>
-                            </div>
-
-                            {selectedQuotation.requirements && (
-                                <div>
-                                    <p className="text-gray-400 text-sm">Requirements</p>
-                                    <p className="text-white">{selectedQuotation.requirements}</p>
-                                </div>
-                            )}
-
-                            <div className="grid grid-cols-2 gap-4">
-                                <div>
-                                    <p className="text-gray-400 text-sm">Timeline</p>
-                                    <p className="text-white">{selectedQuotation.timeline || 'Not specified'}</p>
-                                </div>
-                                <div>
-                                    <p className="text-gray-400 text-sm">Budget Range</p>
-                                    <p className="text-white">{selectedQuotation.budget_range || 'Not specified'}</p>
-                                </div>
-                            </div>
-
-                            <div>
-                                <p className="text-gray-400 text-sm mb-2">Status</p>
-                                <span className={`px-3 py-1 rounded-full text-xs font-medium ${selectedQuotation.status === 'pending' ? 'bg-yellow-500/20 text-yellow-400' :
-                                    selectedQuotation.status === 'approved' ? 'bg-green-500/20 text-green-400' :
-                                        selectedQuotation.status === 'rejected' ? 'bg-red-500/20 text-red-400' :
-                                            'bg-gray-500/20 text-gray-400'
-                                    }`}>
-                                    {selectedQuotation.status?.toUpperCase() || 'PENDING'}
-                                </span>
-                            </div>
-
-                            {selectedQuotation.status === 'pending' && (
-                                <div className="flex gap-4 pt-4 border-t border-white/10">
-                                    <button
-                                        onClick={() => handleStatusUpdate(selectedQuotation.id, 'approved')}
-                                        disabled={updating}
-                                        className="flex-1 bg-green-600 hover:bg-green-700 text-white font-semibold px-6 py-3 rounded-lg transition disabled:opacity-50"
-                                    >
-                                        Approve
-                                    </button>
-                                    <button
-                                        onClick={() => handleStatusUpdate(selectedQuotation.id, 'rejected')}
-                                        disabled={updating}
-                                        className="flex-1 bg-red-600 hover:bg-red-700 text-white font-semibold px-6 py-3 rounded-lg transition disabled:opacity-50"
-                                    >
-                                        Reject
-                                    </button>
-                                </div>
-                            )}
-                        </div>
-                    </div>
-                </div>
-            )}
         </>
     );
 }

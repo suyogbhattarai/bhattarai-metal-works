@@ -4,19 +4,23 @@ from rest_framework.permissions import IsAuthenticated, AllowAny
 from rest_framework.response import Response
 from rest_framework.parsers import MultiPartParser, FormParser, JSONParser
 from django.shortcuts import get_object_or_404
-from django.db.models import Q
+from django.db import models
+from django.db.models import Q, Sum, Count
+from django.db.models.functions import Length
 from django_filters.rest_framework import DjangoFilterBackend
 from rest_framework import filters
 
 from accounts.utils.responses import success_response, error_response
 
 from .models import (
-    Category, Product, Review, QuotationRequest, ServiceBooking,Material, Specification, Product
+    Category, Product, Review, QuotationRequest, ServiceBooking, Material, Specification,
+    StoreService, SearchQuery, ProductView
 )
 from .serializers import (
     CategorySerializer, ProductListSerializer, ProductDetailSerializer,
     ProductCreateUpdateSerializer, ReviewSerializer, ReviewCreateSerializer, 
-    QuotationRequestSerializer, ServiceBookingSerializer,MaterialSerializer, SpecificationSerializer
+    QuotationRequestSerializer, ServiceBookingSerializer, MaterialSerializer, SpecificationSerializer,
+    StoreServiceSerializer, SearchQuerySerializer, ProductViewSerializer
 )
 from .filters import ProductFilter
 
@@ -119,7 +123,12 @@ class ProductListCreateView(APIView):
     parser_classes = [JSONParser, MultiPartParser, FormParser]
 
     def get(self, request, *args, **kwargs):
-        queryset = Product.objects.filter(is_active=True).select_related('category').prefetch_related('images', 'materials', 'reviews')
+        if is_admin_or_staff(request.user):
+            queryset = Product.objects.all()
+        else:
+            queryset = Product.objects.filter(is_active=True)
+        
+        queryset = queryset.select_related('category').prefetch_related('images', 'materials', 'reviews')
         
         # Filter by category slug
         category = request.query_params.get('category')
@@ -189,8 +198,12 @@ class ProductDetailView(APIView):
     parser_classes = [JSONParser, MultiPartParser, FormParser]
 
     def get(self, request, slug, *args, **kwargs):
+        queryset = Product.objects.all()
+        if not is_admin_or_staff(request.user):
+            queryset = queryset.filter(is_active=True)
+
         product = get_object_or_404(
-            Product.objects.filter(is_active=True).select_related('category').prefetch_related(
+            queryset.select_related('category').prefetch_related(
                 'images', 'materials', 'specifications', 'reviews__user'
             ),
             slug=slug
@@ -389,9 +402,12 @@ class QuotationRequestListCreateView(APIView):
                 status_code=status.HTTP_401_UNAUTHORIZED
             )
         
-        quotations = QuotationRequest.objects.filter(
-            user=request.user
-        ).select_related('product').prefetch_related('attachments')
+        if is_admin_or_staff(request.user):
+            quotations = QuotationRequest.objects.all().select_related('product', 'user').prefetch_related('attachments')
+        else:
+            quotations = QuotationRequest.objects.filter(
+                user=request.user
+            ).select_related('product').prefetch_related('attachments')
         
         serializer = QuotationRequestSerializer(quotations, many=True, context={'request': request})
         return success_response(
@@ -1112,3 +1128,162 @@ class MaterialDetailView(APIView):
         material = get_object_or_404(Material, pk=pk)
         material.delete()
         return success_response("Material deleted", status_code=status.HTTP_204_NO_CONTENT)
+
+
+# ============= SERVICE STORE VIEWS =============
+
+class StoreServiceListCreateView(APIView):
+    """List all services (public) or create new one (admin)"""
+    permission_classes = [AllowAny]
+    parser_classes = [JSONParser, MultiPartParser, FormParser]
+
+    def get(self, request, *args, **kwargs):
+        if is_admin_or_staff(request.user):
+            services = StoreService.objects.all()
+        else:
+            services = StoreService.objects.filter(is_active=True)
+        serializer = StoreServiceSerializer(services, many=True, context={'request': request})
+        return success_response("Services retrieved", {'results': serializer.data})
+
+    def post(self, request, *args, **kwargs):
+        if not is_admin_or_staff(request.user):
+            return error_response("Admin access required", status_code=status.HTTP_403_FORBIDDEN)
+        
+        serializer = StoreServiceSerializer(data=request.data, context={'request': request})
+        if not serializer.is_valid():
+            return error_response("Invalid service data", serializer.errors)
+        
+        serializer.save()
+        return success_response("Service created", serializer.data, status_code=status.HTTP_201_CREATED)
+
+class StoreServiceDetailView(APIView):
+    """Retrieve, update or delete a service (admin)"""
+    permission_classes = [IsAuthenticated]
+    parser_classes = [JSONParser, MultiPartParser, FormParser]
+
+    def get(self, request, pk, *args, **kwargs):
+        service = get_object_or_404(StoreService, pk=pk)
+        serializer = StoreServiceSerializer(service, context={'request': request})
+        return success_response("Service retrieved", serializer.data)
+
+    def put(self, request, pk, *args, **kwargs):
+        if not is_admin_or_staff(request.user):
+            return error_response("Admin access required", status_code=status.HTTP_403_FORBIDDEN)
+        
+        service = get_object_or_404(StoreService, pk=pk)
+        serializer = StoreServiceSerializer(service, data=request.data, partial=True, context={'request': request})
+        if not serializer.is_valid():
+            return error_response("Invalid service data", serializer.errors)
+        
+        serializer.save()
+        return success_response("Service updated", serializer.data)
+
+    def delete(self, request, pk, *args, **kwargs):
+        if not is_admin_or_staff(request.user):
+            return error_response("Admin access required", status_code=status.HTTP_403_FORBIDDEN)
+        
+        service = get_object_or_404(StoreService, pk=pk)
+        service.delete()
+        return success_response("Service deleted", status_code=status.HTTP_204_NO_CONTENT)
+
+class DashboardOverviewView(APIView):
+    """Centralized admin dashboard overview"""
+    permission_classes = [IsAuthenticated]
+
+    def get(self, request, *args, **kwargs):
+        if not is_admin_or_staff(request.user):
+            return error_response("Admin access required", status_code=status.HTTP_403_FORBIDDEN)
+
+        # Recent Quotations
+        recent_quotations = QuotationRequest.objects.all().order_by('-created_at')[:5]
+        quotation_serializer = QuotationRequestSerializer(recent_quotations, many=True, context={'request': request})
+
+        # SEO Health (All products for admin diagnostic)
+        seo_alerts = []
+        thin_products = Product.objects.all().annotate(
+            desc_len=Length('description')
+        ).filter(
+            Q(meta_description='') | Q(meta_keywords='') | Q(desc_len__lt=100)
+        )[:10]
+        
+        for p in thin_products:
+            missing = []
+            if not p.meta_description: missing.append("Meta Description")
+            if not p.meta_keywords: missing.append("Meta Keywords")
+            if p.description and len(p.description) < 100: missing.append("Deep Content")
+            elif not p.description: missing.append("Description")
+            seo_alerts.append({
+                "id": p.id,
+                "name": p.name,
+                "slug": p.slug,
+                "missing": missing,
+                "severity": "high" if len(missing) > 1 else "medium"
+            })
+
+        data = {
+            "recent_quotations": quotation_serializer.data,
+            "seo_alerts": seo_alerts,
+            "stats": {
+                "total_products": Product.objects.count(),
+                "total_services": StoreService.objects.count(),
+                "pending_quotations": QuotationRequest.objects.filter(status='pending').count(),
+                "staff_count": StaffProfile.objects.count()
+            }
+        }
+
+        return success_response("Overview metrics retrieved", data)
+
+# ============= ANALYTICS VIEWS =============
+
+class AnalyticsDashboardView(APIView):
+    """Consolidated analytics for the admin dashboard"""
+    permission_classes = [IsAuthenticated]
+
+    def get(self, request, *args, **kwargs):
+        if not is_admin_or_staff(request.user):
+            return error_response("Admin access required", status_code=status.HTTP_403_FORBIDDEN)
+
+        # Most searched queries
+        top_searches = SearchQuery.objects.values('query').annotate(
+            search_count=models.Sum('count')
+        ).order_by('-search_count')[:10]
+
+        # Most viewed products (all for diagnostic)
+        top_views = ProductView.objects.all().values('product__name').annotate(
+            view_count=models.Count('id')
+        ).order_by('-view_count')[:10]
+
+        # SEO Suggestions (Only for active products)
+        seo_suggestions = []
+        low_seo_products = Product.objects.filter(is_active=True).annotate(
+            desc_len=Length('description')
+        ).filter(
+            Q(meta_description='') | Q(meta_keywords='') | Q(desc_len__lt=100)
+        )[:10]
+        
+        for p in low_seo_products:
+            missing = []
+            if not p.meta_description: missing.append("Meta Description")
+            if not p.meta_keywords: missing.append("Meta Keywords")
+            if len(p.description) < 100: missing.append("Deep Content")
+            
+            seo_suggestions.append({
+                "id": p.id,
+                "name": p.name,
+                "slug": p.slug,
+                "missing": missing,
+                "suggestion": f"Enhance {', '.join(missing)} to improve organic discoverability."
+            })
+
+        data = {
+            "top_searches": top_searches,
+            "top_views": top_views,
+            "seo_suggestions": seo_suggestions,
+            "summary": {
+                "total_products": Product.objects.count(),
+                "total_services": StoreService.objects.count(),
+                "total_queries": SearchQuery.objects.aggregate(total=models.Sum('count'))['total'] or 0
+            }
+        }
+
+        return success_response("Analytics retrieved", data)

@@ -43,8 +43,10 @@ export default function ProductModal({ onClose, onSubmit, product, categories, s
     });
 
     const [seo, setSeo] = useState({
+        meta_title: '',
         meta_description: '',
-        meta_keywords: ''
+        meta_keywords: '',
+        focus_keyword: ''
     });
 
     const [selectedMaterials, setSelectedMaterials] = useState<number[]>([]);
@@ -81,8 +83,10 @@ export default function ProductModal({ onClose, onSubmit, product, categories, s
             });
 
             setSeo({
+                meta_title: product.meta_title || product.name || '',
                 meta_description: product.meta_description || '',
-                meta_keywords: product.meta_keywords || ''
+                meta_keywords: product.meta_keywords || '',
+                focus_keyword: product.focus_keyword || ''
             });
 
             if (product.materials) {
@@ -165,12 +169,12 @@ export default function ProductModal({ onClose, onSubmit, product, categories, s
 
         await onSubmit(formData);
     };
-
     const tabs = [
         { id: 'basic', label: 'Basic' },
         { id: 'materials', label: 'Materials' },
         { id: 'images', label: 'Media' },
-        { id: 'details', label: 'Details' }, // Dimensions & SEO
+        { id: 'dimensions', label: 'Spec' },
+        { id: 'seo', label: 'SEO' },
     ];
 
     return (
@@ -310,8 +314,8 @@ export default function ProductModal({ onClose, onSubmit, product, categories, s
                             </div>
                         )}
 
-                        {/* DETAILS (Dimensions & SEO) */}
-                        {activeTab === 'details' && (
+                        {/* DIMENSIONS */}
+                        {activeTab === 'dimensions' && (
                             <div className="animate-fadeIn space-y-6">
                                 <FormSection title="Dimensions & Weight">
                                     <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
@@ -321,31 +325,104 @@ export default function ProductModal({ onClose, onSubmit, product, categories, s
                                         <InputGroup label="Weight (kg)" type="number" value={dimensions.weight} onChange={v => setDimensions({ ...dimensions, weight: v })} />
                                     </div>
                                 </FormSection>
+                            </div>
+                        )}
 
-                                <FormSection title="SEO (Search Engine Optimization)">
-                                    <div className="space-y-4">
-                                        <div>
-                                            <label className="block text-gray-400 text-xs font-medium uppercase tracking-wider mb-2">Meta Keywords</label>
-                                            <input
-                                                type="text"
-                                                value={seo.meta_keywords}
-                                                onChange={e => setSeo({ ...seo, meta_keywords: e.target.value })}
-                                                className="w-full bg-[#050b2b] border border-white/10 rounded-xl px-4 py-3 text-white focus:border-[#f6423a] focus:outline-none transition text-sm"
-                                                placeholder="gate, steel, iron, modern..."
-                                            />
-                                        </div>
-                                        <div>
-                                            <label className="block text-gray-400 text-xs font-medium uppercase tracking-wider mb-2">Meta Description</label>
-                                            <textarea
-                                                rows={3}
-                                                value={seo.meta_description}
-                                                onChange={e => setSeo({ ...seo, meta_description: e.target.value })}
-                                                className="w-full bg-[#050b2b] border border-white/10 rounded-xl px-4 py-3 text-white focus:border-[#f6423a] focus:outline-none transition resize-none text-sm"
-                                                placeholder="Brief summary for search engines..."
-                                            />
+                        {/* SEO OPTIMIZATION */}
+                        {activeTab === 'seo' && (
+                            <div className="animate-fadeIn space-y-8">
+                                <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
+                                    <div className="lg:col-span-2 space-y-6">
+                                        <FormSection title="SEO Metadata">
+                                            <div className="space-y-4">
+                                                <InputGroup
+                                                    label="SEO Title (Google Title)"
+                                                    value={seo.meta_title}
+                                                    onChange={v => setSeo({ ...seo, meta_title: v })}
+                                                    placeholder="Keep it under 60 characters"
+                                                />
+                                                <InputGroup
+                                                    label="Focus Keyword"
+                                                    value={seo.focus_keyword}
+                                                    onChange={v => setSeo({ ...seo, focus_keyword: v })}
+                                                    placeholder="Main keyword for this product"
+                                                />
+                                                <div>
+                                                    <label className="block text-gray-400 text-xs font-medium uppercase tracking-wider mb-2">Meta Keywords</label>
+                                                    <input
+                                                        type="text"
+                                                        value={seo.meta_keywords}
+                                                        onChange={e => setSeo({ ...seo, meta_keywords: e.target.value })}
+                                                        className="w-full bg-[#050b2b] border border-white/10 rounded-xl px-4 py-3 text-white focus:border-[#f6423a] focus:outline-none transition text-sm"
+                                                        placeholder="gate, steel, iron, modern..."
+                                                    />
+                                                </div>
+                                                <div>
+                                                    <label className="block text-gray-400 text-xs font-medium uppercase tracking-wider mb-2">Meta Description</label>
+                                                    <textarea
+                                                        rows={3}
+                                                        value={seo.meta_description}
+                                                        onChange={e => setSeo({ ...seo, meta_description: e.target.value })}
+                                                        className="w-full bg-[#050b2b] border border-white/10 rounded-xl px-4 py-3 text-white focus:border-[#f6423a] focus:outline-none transition resize-none text-sm"
+                                                        placeholder="Brief summary for search engines (Max 160 chars)..."
+                                                    />
+                                                </div>
+                                            </div>
+                                        </FormSection>
+
+                                        <FormSection title="Content Analysis">
+                                            <div className="space-y-4">
+                                                <div className="flex items-center justify-between p-3 bg-white/5 rounded-lg border border-white/5">
+                                                    <div className="flex items-center gap-3">
+                                                        <div className={`w-2 h-2 rounded-full ${seo.meta_title.length >= 10 && seo.meta_title.length <= 60 ? 'bg-green-500' : 'bg-yellow-500'}`} />
+                                                        <span className="text-sm text-gray-300">Title Length</span>
+                                                    </div>
+                                                    <span className="text-xs text-gray-500">{seo.meta_title.length} chars</span>
+                                                </div>
+                                                <div className="flex items-center justify-between p-3 bg-white/5 rounded-lg border border-white/5">
+                                                    <div className="flex items-center gap-3">
+                                                        <div className={`w-2 h-2 rounded-full ${seo.meta_description.length >= 50 && seo.meta_description.length <= 160 ? 'bg-green-500' : 'bg-yellow-500'}`} />
+                                                        <span className="text-sm text-gray-300">Description Length</span>
+                                                    </div>
+                                                    <span className="text-xs text-gray-500">{seo.meta_description.length} chars</span>
+                                                </div>
+                                                <div className="flex items-center justify-between p-3 bg-white/5 rounded-lg border border-white/5">
+                                                    <div className="flex items-center gap-3">
+                                                        <div className={`w-2 h-2 rounded-full ${seo.focus_keyword && basicInfo.description.toLowerCase().includes(seo.focus_keyword.toLowerCase()) ? 'bg-green-500' : 'bg-red-500'}`} />
+                                                        <span className="text-sm text-gray-300">Keyword Density</span>
+                                                    </div>
+                                                    <span className="text-xs text-gray-500">{seo.focus_keyword ? 'Checking...' : 'Keyword needed'}</span>
+                                                </div>
+                                            </div>
+                                        </FormSection>
+                                    </div>
+
+                                    <div className="space-y-6">
+                                        <div className="sticky top-0">
+                                            <h4 className="text-xs font-bold text-gray-500 uppercase tracking-widest mb-4">Google Search Preview</h4>
+                                            <div className="bg-white rounded-xl p-6 shadow-xl">
+                                                <div className="flex items-center gap-1 text-[12px] text-[#202124] mb-1">
+                                                    <span>bhattarai-metalworks.com</span>
+                                                    <span className="text-gray-400">› products › {basicInfo.name.toLowerCase().replace(/\s+/g, '-')}</span>
+                                                </div>
+                                                <h3 className="text-[20px] text-[#1a0dab] font-medium leading-[26px] mb-1 hover:underline cursor-pointer">
+                                                    {seo.meta_title || basicInfo.name || 'Product Title Page'}
+                                                </h3>
+                                                <p className="text-[14px] text-[#4d5156] leading-[20px] line-clamp-2">
+                                                    {seo.meta_description || 'Please provide a meta description to see how your product will appear in Google search results. A good description increases click rates!'}
+                                                </p>
+                                            </div>
+                                            <div className="mt-8 p-6 bg-[#f6423a]/5 rounded-2xl border border-[#f6423a]/10">
+                                                <h4 className="flex items-center gap-2 text-[#f6423a] text-sm font-bold mb-3">
+                                                    <MdInfo /> SEO Pro-Tip
+                                                </h4>
+                                                <p className="text-xs text-gray-400 leading-relaxed">
+                                                    Ensure your **Focus Keyword** appears in both the title and the first paragraph of your description for maximum impact.
+                                                </p>
+                                            </div>
                                         </div>
                                     </div>
-                                </FormSection>
+                                </div>
                             </div>
                         )}
 

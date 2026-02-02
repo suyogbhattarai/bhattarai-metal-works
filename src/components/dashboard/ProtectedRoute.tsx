@@ -4,7 +4,8 @@ import React, { useEffect, useState } from 'react';
 import { useRouter } from 'next/navigation';
 import { useSelector } from 'react-redux';
 import { RootState } from '@/utils/lib/redux/Store';
-import { FullPageLoading as Loading } from '@/components/Loading';
+import { BrandSpinner } from '@/components/BrandSpinner';
+import DashboardSkeleton from './DashboardSkeleton';
 
 interface ProtectedRouteProps {
     children: React.ReactNode;
@@ -40,7 +41,7 @@ const ProtectedRoute: React.FC<ProtectedRouteProps> = ({ children, allowedRoles 
 
     // Show loading spinner while checking auth state or if Redux is loading
     if (loading || (!isAuthenticated && !isAuthorized)) {
-        return <Loading />;
+        return <DashboardSkeleton />;
     }
 
     // Role-based access denied (if we want to handle it at this level)

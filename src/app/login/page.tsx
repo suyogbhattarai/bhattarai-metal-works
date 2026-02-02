@@ -35,8 +35,11 @@ function AuthContent() {
         phone_number: '',
     });
 
-    const getRedirectPath = (role?: string) =>
-        role === 'admin' || role === 'staff' ? '/dashboard' : '/portfolio';
+    const getRedirectPath = (role?: string) => {
+        const redirect = searchParams.get('redirect');
+        if (redirect) return redirect;
+        return role === 'admin' || role === 'staff' ? '/dashboard' : '/portfolio';
+    };
 
     useEffect(() => {
         setMounted(true);
@@ -48,7 +51,10 @@ function AuthContent() {
             router.replace('/login');
         }
 
-        if (isAuthenticated && user) router.push(getRedirectPath(user.role));
+        if (isAuthenticated && user) {
+            const path = getRedirectPath(user.role);
+            router.push(path);
+        }
         return () => setMounted(false);
     }, [isAuthenticated, user, router, searchParams, showError]);
 
@@ -59,8 +65,8 @@ function AuthContent() {
             <Navbar />
             <ToastContainer toasts={toasts} removeToast={removeToast} />
 
-            <div className=" flex items-center justify-center   px-15 py-40">
-                <div className="relative w-full  grid md:grid-cols-2 rounded-3xl overflow-hidden shadow-[0_30px_120px_rgba(0,0,0,0.6)] border border-white/10 bg-white/5 backdrop-blur-2xl">
+            <div className="flex items-center justify-center px-4 py-28 md:px-15 md:py-40">
+                <div className="relative w-full max-w-6xl grid md:grid-cols-2 rounded-3xl overflow-hidden shadow-[0_30px_120px_rgba(0,0,0,0.6)] border border-white/10 bg-white/5 backdrop-blur-2xl">
 
                     {/* LEFT PANEL */}
                     <div
@@ -91,7 +97,7 @@ function AuthContent() {
                     </div>
 
                     {/* RIGHT PANEL */}
-                    <div className="flex items-center justify-center p-8 md:p-12 bg-[#0c1233]">
+                    <div className="flex items-center justify-center p-6 md:p-12 bg-[#0c1233]">
                         <div className="w-full max-w-md">
                             <h2 className="text-3xl font-bold text-white">
                                 {isLogin ? 'Welcome Back' : 'Create Account'}

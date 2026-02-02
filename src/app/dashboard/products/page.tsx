@@ -1,6 +1,7 @@
 'use client';
 
 import React, { useEffect, useState } from 'react';
+import Link from 'next/link';
 import { useDispatch, useSelector } from 'react-redux';
 import { RootState } from '@/utils/lib/redux/Store';
 import { fetchProducts, deleteProduct, createProduct } from '@/utils/lib/redux/features/products/productSlice';
@@ -149,6 +150,11 @@ export default function ProductsPage() {
                 <div className="flex flex-col gap-6">
                     <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
                         <div>
+                            <div className="flex items-center gap-2 text-sm text-gray-400 mb-2 font-medium">
+                                <Link href="/dashboard" className="hover:text-white transition">Dashboard</Link>
+                                <span className="text-gray-600">/</span>
+                                <span className="text-[#f6423a]">Products</span>
+                            </div>
                             <h1 className="text-2xl font-bold text-white mb-1">Products</h1>
                             <p className="text-sm text-gray-400">Manage your product catalog</p>
                         </div>

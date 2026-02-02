@@ -2,11 +2,15 @@ import { configureStore } from '@reduxjs/toolkit'
 import { useDispatch, useSelector, TypedUseSelectorHook } from 'react-redux'
 import authReducer from './features/auth/authSlice'
 import productReducer from './features/products/productSlice'
+import managementReducer from './features/management/managementSlice'
+import portfolioReducer from './features/portfolio/portfolioSlice'
 
 export const store = configureStore({
     reducer: {
         auth: authReducer,
         products: productReducer,
+        management: managementReducer,
+        portfolio: portfolioReducer,
     },
     middleware: (getDefaultMiddleware) =>
         getDefaultMiddleware({

@@ -35,6 +35,14 @@ export interface ProductImage {
     order: number;
 }
 
+export interface StoreServiceImage {
+    id: number;
+    image: string;
+    alt_text?: string;
+    is_primary: boolean;
+    order: number;
+}
+
 export interface Specification {
     id: number;
     name: string;
@@ -59,7 +67,7 @@ export interface ProductListItem {
     id: number;
     name: string;
     slug: string;
-    category: string;
+    category?: any; // Can be string in list, Category object in detail
     description?: string;
     product_type: string;
     base_price: string;
@@ -146,6 +154,24 @@ export interface ServiceBooking {
     completed_at?: string;
 }
 
+export interface StoreService {
+    id: number;
+    title: string;
+    slug: string;
+    category: string;
+    description: string;
+    icon_name?: string;
+    image?: string;
+    images: StoreServiceImage[];
+    is_active: boolean;
+    order: number;
+    created_at: string;
+    meta_title?: string;
+    meta_description?: string;
+    meta_keywords?: string;
+    focus_keyword?: string;
+}
+
 export interface ProductState {
     // Categories
     categories: Category[];
@@ -174,6 +200,11 @@ export interface ProductState {
     // Materials
     materials: Material[];
     materialsLoading: boolean;
+
+    // Store Services
+    services: StoreService[];
+    servicesLoading: boolean;
+    servicesError: string | null;
 
     // Quotations
     quotations: QuotationRequest[];
@@ -206,6 +237,9 @@ const initialState: ProductState = {
     searchLoading: false,
     materials: [],
     materialsLoading: false,
+    services: [],
+    servicesLoading: false,
+    servicesError: null,
     quotations: [],
     quotationsLoading: false,
     quotationsError: null,
@@ -342,7 +376,23 @@ export const deleteMaterial = createAsyncThunk(
     }
 );
 
+// ========== STORE SERVICES ==========
+
+export const fetchStoreServices = createAsyncThunk(
+    'products/fetchStoreServices',
+    async (_, { rejectWithValue }) => {
+        try {
+            const response = await axiosInstance.get('/products/store-services/');
+            const data = response.data.data || response.data;
+            return Array.isArray(data) ? data : data.results || [];
+        } catch (error: any) {
+            return rejectWithValue(error.response?.data?.message || 'Failed to fetch services');
+        }
+    }
+);
+
 // ========== PRODUCTS ==========
+
 
 export const fetchProducts = createAsyncThunk(
     'products/fetchProducts',
@@ -788,6 +838,21 @@ const productSlice = createSlice({
                 if (index !== -1) {
                     state.bookings[index] = action.payload;
                 }
+            });
+
+        // ========== STORE SERVICES ==========
+        builder
+            .addCase(fetchStoreServices.pending, (state) => {
+                state.servicesLoading = true;
+                state.servicesError = null;
+            })
+            .addCase(fetchStoreServices.fulfilled, (state, action) => {
+                state.servicesLoading = false;
+                state.services = action.payload;
+            })
+            .addCase(fetchStoreServices.rejected, (state, action) => {
+                state.servicesLoading = false;
+                state.servicesError = action.payload as string;
             });
     },
 });

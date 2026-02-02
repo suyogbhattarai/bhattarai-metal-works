@@ -15,17 +15,28 @@ gsap.registerPlugin(ScrollTrigger);
 interface NavbarProps {
   variant?: 'default' | 'dashboard';
   readonly onMenuClick?: () => void;
+  forceTransparent?: boolean;
 }
 
-function Navbar({ variant = 'default', onMenuClick }: NavbarProps) {
+function Navbar({ variant = 'default', onMenuClick, forceTransparent = false }: NavbarProps) {
   const [isOpen, setIsOpen] = useState(false);
   const [isProfileDropdownOpen, setIsProfileDropdownOpen] = useState(false);
   const navRef = useRef<HTMLElement>(null);
   const profileDropdownRef = useRef<HTMLDivElement>(null);
   const pathname = usePathname();
   const isHomePage = pathname === '/';
+  const isSolidPage = pathname === '/products' || pathname?.startsWith('/products') ||
+    pathname === '/ourbrand' || pathname?.startsWith('/ourbrand');
 
-  const { isAuthenticated, user } = useAppSelector((state) => state.auth);
+  const [navBg, setNavBg] = useState(forceTransparent ? 'transparent' : (isSolidPage ? 'var(--background)' : 'transparent'));
+  const [textColor, setTextColor] = useState('white');
+  const [mounted, setMounted] = useState(false);
+
+  useEffect(() => {
+    setMounted(true);
+  }, []);
+
+  const { isAuthenticated, user, loading } = useAppSelector((state) => state.auth);
   const dispatch = useAppDispatch();
 
   const handleLogout = () => {
@@ -49,103 +60,155 @@ function Navbar({ variant = 'default', onMenuClick }: NavbarProps) {
   useEffect(() => {
     // Disable GSAP for dashboard mode
     if (variant === 'dashboard') return;
-    if (!navRef.current || !isHomePage) return;
+    if (!navRef.current) return;
 
-    let ctx = gsap.context(() => {
-      ScrollTrigger.matchMedia({
-        "(min-width: 1025px)": function () {
-          ScrollTrigger.create({
-            trigger: 'body',
-            start: '800px top',
-            onEnter: () => {
-              gsap.to(navRef.current, {
-                backgroundColor: '#071236',
-             
-                top: '2.2rem',
-                duration: 0.3,
-                ease: 'power2.out',
-              });
-            },
-            onLeaveBack: () => {
-              gsap.to(navRef.current, {
-                backgroundColor: 'transparent',
-            
-                top: '3.5rem',
-                duration: 0.3,
-                ease: 'power2.out',
-                boxShadow: '0 0px 0px rgba(0, 0, 0, 0)'
-              });
-            }
-          });
-        },
+    // Homepage - use original GSAP animations
+    if (isHomePage) {
+      let ctx = gsap.context(() => {
+        ScrollTrigger.matchMedia({
+          "(min-width: 1025px)": function () {
+            ScrollTrigger.create({
+              trigger: 'body',
+              start: '800px top',
+              onEnter: () => {
+                gsap.to(navRef.current, {
+                  backgroundColor: 'var(--background)',
+                  top: '2.2rem',
+                  duration: 0.3,
+                  ease: 'power2.out',
+                });
+              },
+              onLeaveBack: () => {
+                gsap.to(navRef.current, {
+                  backgroundColor: 'transparent',
+                  top: '3.5rem',
+                  duration: 0.3,
+                  ease: 'power2.out',
+                  boxShadow: '0 0px 0px rgba(0, 0, 0, 0)'
+                });
+              }
+            });
+          },
 
-        "(min-width: 768px) and (max-width: 1025px)": function () {
-          ScrollTrigger.create({
-            trigger: 'body',
-            start: '600px top',
-            onEnter: () => {
-              gsap.to(navRef.current, {
-                backgroundColor: '#071236',
-              
-                top: '0rem',
-                duration: 0.3,
-                ease: 'power2.out',
-                boxShadow: '0 3px 5px rgba(0, 0, 0, 0.25)'
-              });
-            },
-            onLeaveBack: () => {
-              gsap.to(navRef.current, {
-                backgroundColor: 'transparent',
-           
-                top: '1.2rem',
-                duration: 0.3,
-                ease: 'power2.out',
-                boxShadow: '0 0px 0px rgba(0, 0, 0, 0)'
-              });
-            }
-          });
-        },
+          "(min-width: 768px) and (max-width: 1025px)": function () {
+            ScrollTrigger.create({
+              trigger: 'body',
+              start: '600px top',
+              onEnter: () => {
+                gsap.to(navRef.current, {
+                  backgroundColor: 'var(--background)',
+                  top: '0rem',
+                  duration: 0.3,
+                  ease: 'power2.out',
+                  boxShadow: '0 3px 5px rgba(0, 0, 0, 0.25)'
+                });
+              },
+              onLeaveBack: () => {
+                gsap.to(navRef.current, {
+                  backgroundColor: 'transparent',
+                  top: '1.2rem',
+                  duration: 0.3,
+                  ease: 'power2.out',
+                  boxShadow: '0 0px 0px rgba(0, 0, 0, 0)'
+                });
+              }
+            });
+          },
 
-        "(max-width: 767px)": function () {
-          ScrollTrigger.create({
-            trigger: 'body',
-            start: '400px top',
-            onEnter: () => {
-              gsap.to(navRef.current, {
-                backgroundColor: '#071236',
-          
-                top: '0rem',
-                duration: 0.3,
-                ease: 'power2.out',
-                boxShadow: '0 2px 4px rgba(0, 0, 0, 0.3)'
-              });
-            },
-            onLeaveBack: () => {
-              gsap.to(navRef.current, {
-                backgroundColor: 'transparent',
-            
-                top: '0.5rem',
-                duration: 0.3,
-                ease: 'power2.out',
-                boxShadow: '0 0px 0px rgba(0, 0, 0, 0)'
-              });
+          "(max-width: 767px)": function () {
+            ScrollTrigger.create({
+              trigger: 'body',
+              start: '400px top',
+              onEnter: () => {
+                gsap.to(navRef.current, {
+                  backgroundColor: 'var(--background)',
+                  top: '0rem',
+                  duration: 0.3,
+                  ease: 'power2.out',
+                  boxShadow: '0 2px 4px rgba(0, 0, 0, 0.3)'
+                });
+              },
+              onLeaveBack: () => {
+                gsap.to(navRef.current, {
+                  backgroundColor: 'transparent',
+                  top: '0.5rem',
+                  duration: 0.3,
+                  ease: 'power2.out',
+                  boxShadow: '0 0px 0px rgba(0, 0, 0, 0)'
+                });
+              }
+            });
+          }
+        });
+      });
+
+      return () => ctx.revert();
+    }
+
+    // Other pages - adaptive navbar based on scroll and background
+    const handleScroll = () => {
+      const scrollY = window.scrollY;
+      const sections = document.querySelectorAll('section');
+
+      // Check which section is currently at the top
+      let currentBg = 'transparent';
+      let currentText = 'white';
+      let foundSection = false;
+
+      // 1. Detect section background for text color switching
+      sections.forEach((section) => {
+        const rect = section.getBoundingClientRect();
+        if (rect.top <= 150 && rect.bottom >= 150) {
+          foundSection = true;
+          const bgColor = window.getComputedStyle(section).backgroundColor;
+          if (bgColor.includes('rgb')) {
+            const rgb = bgColor.match(/\d+/g);
+            if (rgb) {
+              const brightness = (parseInt(rgb[0]) * 299 + parseInt(rgb[1]) * 587 + parseInt(rgb[2]) * 114) / 1000;
+              // If it's a light section, we could switch to dark text here if needed
+              // Text is white globally for now based on design
             }
-          });
+          }
         }
       });
-    });
 
-    return () => ctx.revert();
-  }, [isHomePage, variant]);
+      // 2. Set background based on scroll threshold
+      if (scrollY >= 80) {
+        currentBg = 'var(--background)';
+      } else {
+        currentBg = 'transparent';
+      }
+
+      // 3. Special overrides for specific pages
+      if (pathname === '/about' || pathname?.startsWith('/about') ||
+        pathname === '/services' || pathname?.startsWith('/services') ||
+        pathname === '/portfolio' || pathname?.startsWith('/portfolio')) {
+        currentBg = 'transparent';
+      }
+
+      if (isSolidPage) {
+        currentBg = 'var(--background)';
+      }
+
+      setNavBg(currentBg);
+      setTextColor(currentText);
+    };
+
+    window.addEventListener('scroll', handleScroll);
+    handleScroll(); // Initial check
+
+    return () => window.removeEventListener('scroll', handleScroll);
+  }, [variant, isHomePage]);
 
   const getNavStyles = () => {
     if (variant === 'dashboard') {
-      return "fixed top-0 bg-[#071236] border-b border-white/10 h-16 py-10 flex items-center";
+      return "fixed top-0 bg-[var(--background)] border-b border-white/10 h-16 py-10 flex items-center";
     }
     if (isHomePage) {
       return "fixed lg:top-15 md:top-5 top-1";
     }
-    return "fixed lg:top-9 top-0 bg-[#071236] shadow-md";
+    // Other pages - dynamic positioning: lower when transparent, higher when background active
+    return navBg === 'transparent' ? "fixed top-2 md:top-12 lg:top-14" : "fixed top-1 md:top-9";
   };
 
   const getNavPadding = () => {
@@ -160,9 +223,10 @@ function Navbar({ variant = 'default', onMenuClick }: NavbarProps) {
       {variant !== 'dashboard' && <div className="hidden lg:block"><Contactbar /></div>}
       <nav
         ref={navRef}
-        className={`${getNavStyles()} left-0 right-0 w-full z-50 transition-all duration-300`}
+        style={{ backgroundColor: navBg }}
+        className={`${getNavStyles()} left-0 right-0 w-full z-40 transition-all duration-500 ${navBg === 'transparent' ? '' : 'backdrop-blur-md shadow-sm'}`}
       >
-        <div className={`w-full max-w-[1920px] mx-auto ${variant === 'dashboard' ? 'px-4 lg:px-6 ' : 'lg:px-15 md:py-[1.1rem] py-[0.6rem]  md:px-10 sm:px-5 px-5'}`}>
+        <div className={`w-full max-w-[1920px] mx-auto ${variant === 'dashboard' ? 'px-4 lg:px-6' : 'lg:px-15 md:py-[1.3rem] py-[0.8rem] md:px-10 sm:px-5 px-5'}`}>
           <div className="rounded-lg ">
             <div className="flex items-center justify-between">
               <div className="flex items-center flex-shrink-0">
@@ -172,17 +236,17 @@ function Navbar({ variant = 'default', onMenuClick }: NavbarProps) {
               </div>
 
               <div className="hidden lg:flex items-center gap-6 xl:gap-8">
-                <a href="/portfolio?activeTab=gatesandshutter" className="text-white hover:text-[#f6423a] transition text-sm xl:text-base whitespace-nowrap">Gates</a>
-                <a href="/portfolio?activeTab=railing" className="text-white hover:text-[#f6423a] transition text-sm xl:text-base whitespace-nowrap">Railing</a>
-                <a href="/portfolio?activeTab=aluminum" className="text-white hover:text-[#f6423a] transition text-sm xl:text-base whitespace-nowrap">Aluminum</a>
-                <a href="/portfolio" className="text-white hover:text-[#f6423a] transition text-sm xl:text-base whitespace-nowrap">Portfolio</a>
+                <a href="/services" style={{ color: textColor }} className="hover:text-[#f6423a] transition text-sm xl:text-base whitespace-nowrap">Services</a>
+                <a href="/products" style={{ color: textColor }} className="hover:text-[#f6423a] transition text-sm xl:text-base whitespace-nowrap">Products</a>
+                <a href="/portfolio" style={{ color: textColor }} className="hover:text-[#f6423a] transition text-sm xl:text-base whitespace-nowrap">Portfolio</a>
+                <a href="/about" style={{ color: textColor }} className="hover:text-[#f6423a] transition text-sm xl:text-base whitespace-nowrap">About Us</a>
+
+
 
                 <div className="flex items-center gap-3">
-                  {!isAuthenticated ? (
-                    <>
-                      <a href="/login" className="border border-white px-4 xl:px-6 py-2 rounded-full font-semibold text-white hover:text-white hover:border-white hover:bg-white/20 transition text-base" onClick={() => setIsOpen(false)}>Login</a>
-                    </>
-                  ) : (
+                  {!mounted ? (
+                    <div className="w-24 h-9 rounded-full bg-white/5 animate-pulse"></div>
+                  ) : isAuthenticated ? (
                     <div className="flex items-center gap-4">
                       {(isAdmin || isStaff) && (
                         <a href="/dashboard" className="border border-[#f6423a] px-4 xl:px-6 py-2 rounded-full font-semibold text-white hover:text-[#f6423a] hover:bg-[#f6423a]/10 transition text-sm xl:text-base">
@@ -215,7 +279,7 @@ function Navbar({ variant = 'default', onMenuClick }: NavbarProps) {
                         </button>
 
                         {isProfileDropdownOpen && (
-                          <div className="absolute right-0 mt-2 w-48 bg-[#071236] rounded-lg shadow-xl border border-gray-700 py-2 z-50">
+                          <div className="absolute right-0 mt-2 w-48 bg-[var(--background)] rounded-lg shadow-xl border border-gray-700 py-2 z-50">
                             <div className="px-4 py-3 border-b border-gray-700">
                               <p className="font-semibold text-white">{user?.username}</p>
                               <p className="text-sm text-gray-400">{user?.email}</p>
@@ -240,6 +304,10 @@ function Navbar({ variant = 'default', onMenuClick }: NavbarProps) {
                         )}
                       </div>
                     </div>
+                  ) : loading ? (
+                    <div className="w-9 h-9 rounded-full bg-white/10 animate-pulse border border-white/5"></div>
+                  ) : (
+                    <a href="/login" className="border border-white px-4 xl:px-6 py-2 rounded-full font-semibold text-white hover:text-white hover:border-white hover:bg-white/20 transition text-base" onClick={() => setIsOpen(false)}>Login</a>
                   )}
                   <a href="/getquote" className="bg-[#f6423a] text-white px-4 xl:px-6 py-2 rounded-full font-semibold hover:bg-[#e03229] transition text-sm xl:text-base whitespace-nowrap">
                     Contact Us
@@ -270,18 +338,16 @@ function Navbar({ variant = 'default', onMenuClick }: NavbarProps) {
                 }`}
             >
               <div className="flex flex-col items-center gap-3 py-4">
-                <a href="/portfolio?activeTab=gatesandshutter" className="text-white hover:text-[#f6423a] transition text-base" onClick={() => setIsOpen(false)}>Gates</a>
-                <a href="/portfolio?activeTab=railing" className="text-white hover:text-[#f6423a] transition text-base" onClick={() => setIsOpen(false)}>Railing</a>
-                <a href="/portfolio?activeTab=staircase" className="text-white hover:text-[#f6423a] transition text-base" onClick={() => setIsOpen(false)}>Staircase</a>
-                <a href="/portfolio?activeTab=interior" className="text-white hover:text-[#f6423a] transition text-base" onClick={() => setIsOpen(false)}>Interior</a>
-                <a href="/portfolio?activeTab=aluminum" className="text-white hover:text-[#f6423a] transition text-base" onClick={() => setIsOpen(false)}>Aluminum</a>
+                <a href="/services" className="text-white hover:text-[#f6423a] transition text-base" onClick={() => setIsOpen(false)}>Services</a>
+                <a href="/products" className="text-white hover:text-[#f6423a] transition text-base" onClick={() => setIsOpen(false)}>Products</a>
+                <a href="/portfolio" className="text-white hover:text-[#f6423a] transition text-base" onClick={() => setIsOpen(false)}>Portfolio</a>
+                <a href="/about" className="text-white hover:text-[#f6423a] transition text-base" onClick={() => setIsOpen(false)}>About Us</a>
 
-                {!isAuthenticated ? (
-                  <>
-                    <a href="/login" className="text-white hover:text-[#f6423a] transition text-base" onClick={() => setIsOpen(false)}>Login</a>
 
-                  </>
-                ) : (
+
+                {!mounted ? (
+                  <div className="w-32 h-6 bg-white/5 animate-pulse rounded-full my-2"></div>
+                ) : isAuthenticated ? (
                   <>
                     {(isAdmin || isStaff) && (
                       <a href="/dashboard" className="text-white hover:text-[#f6423a] transition text-base" onClick={() => setIsOpen(false)}>
@@ -295,6 +361,10 @@ function Navbar({ variant = 'default', onMenuClick }: NavbarProps) {
                       Logout
                     </button>
                   </>
+                ) : loading ? (
+                  <div className="w-8 h-8 rounded-full bg-white/10 animate-pulse border border-white/5 my-2"></div>
+                ) : (
+                  <a href="/login" className="text-white hover:text-[#f6423a] transition text-base" onClick={() => setIsOpen(false)}>Login</a>
                 )}
 
                 <a href="/getquote" className="bg-[#f6423a] text-white px-6 py-2.5 rounded-full font-semibold hover:bg-[#e03229] transition text-base mt-2" onClick={() => setIsOpen(false)}>

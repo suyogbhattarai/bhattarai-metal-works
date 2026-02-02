@@ -25,17 +25,17 @@ export default function Footer() {
   ]
 
   return (
-    <footer className="relative bg-gradient-to-b from-[#010d3c] to-[#000820] text-white">
+    <footer className="relative bg-gradient-to-b from-[var(--background)] to-[var(--navy-midnight)] text-white">
       {/* Main Footer Content */}
       <div className="max-w-7xl mx-auto px-6 md:px-14 py-16 md:py-20">
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-12 lg:gap-8">
-          
+
           {/* Company Info */}
           <div className="lg:col-span-1">
             <div className="mb-6">
-              <Image 
-                src={logo} 
-                alt="Bhattarai Metal Works" 
+              <Image
+                src={logo}
+                alt="Bhattarai Metal Works"
                 width={180}
                 height={60}
                 className="object-contain"
@@ -45,33 +45,33 @@ export default function Footer() {
               Crafting excellence in metal fabrication since 2010. Your trusted partner for custom metalwork solutions across Nepal.
             </p>
             <div className="flex gap-4">
-              <a 
-                href="https://facebook.com" 
-                target="_blank" 
+              <a
+                href="https://facebook.com"
+                target="_blank"
                 rel="noopener noreferrer"
                 className="w-10 h-10 rounded-full bg-white/10 hover:bg-[#f6423a] flex items-center justify-center transition-all duration-300 hover:scale-110"
               >
                 <FaFacebookF className="text-white text-sm" />
               </a>
-              <a 
-                href="https://instagram.com" 
-                target="_blank" 
+              <a
+                href="https://instagram.com"
+                target="_blank"
                 rel="noopener noreferrer"
                 className="w-10 h-10 rounded-full bg-white/10 hover:bg-[#f6423a] flex items-center justify-center transition-all duration-300 hover:scale-110"
               >
                 <FaInstagram className="text-white text-sm" />
               </a>
-              <a 
-                href="https://twitter.com" 
-                target="_blank" 
+              <a
+                href="https://twitter.com"
+                target="_blank"
                 rel="noopener noreferrer"
                 className="w-10 h-10 rounded-full bg-white/10 hover:bg-[#f6423a] flex items-center justify-center transition-all duration-300 hover:scale-110"
               >
                 <FaTwitter className="text-white text-sm" />
               </a>
-              <a 
-                href="https://youtube.com" 
-                target="_blank" 
+              <a
+                href="https://youtube.com"
+                target="_blank"
                 rel="noopener noreferrer"
                 className="w-10 h-10 rounded-full bg-white/10 hover:bg-[#f6423a] flex items-center justify-center transition-all duration-300 hover:scale-110"
               >
@@ -86,8 +86,8 @@ export default function Footer() {
             <ul className="space-y-3">
               {services.map((service, index) => (
                 <li key={index}>
-                  <a 
-                    href="#" 
+                  <a
+                    href="#"
                     className="text-gray-400 hover:text-[#f6423a] transition-colors text-sm flex items-center group"
                   >
                     <span className="w-1.5 h-1.5 rounded-full bg-[#f6423a] mr-3 opacity-0 group-hover:opacity-100 transition-opacity"></span>
@@ -104,8 +104,8 @@ export default function Footer() {
             <ul className="space-y-3">
               {quickLinks.map((link, index) => (
                 <li key={index}>
-                  <a 
-                    href={link.href} 
+                  <a
+                    href={link.href}
                     className="text-gray-400 hover:text-[#f6423a] transition-colors text-sm flex items-center group"
                   >
                     <span className="w-1.5 h-1.5 rounded-full bg-[#f6423a] mr-3 opacity-0 group-hover:opacity-100 transition-opacity"></span>

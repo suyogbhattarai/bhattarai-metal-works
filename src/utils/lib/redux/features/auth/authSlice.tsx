@@ -78,7 +78,8 @@ interface AuthState {
     isAuthenticated: boolean;
     token: string | null;
     refreshToken: string | null;
-    
+    recentlyViewed: any[];
+
     // Admin specific state
     adminUsers: AdminUser[];
     adminUsersTotal: number;
@@ -91,19 +92,21 @@ interface AuthState {
 // Load initial state from localStorage
 const loadAuthFromStorage = (): Partial<AuthState> => {
     if (typeof window === 'undefined') return {};
-    
+
     try {
         const token = localStorage.getItem('accessToken');
         const refreshToken = localStorage.getItem('refreshToken');
         const userStr = localStorage.getItem('user');
-        
+
         if (token && userStr) {
             const user = JSON.parse(userStr);
+            const recentlyViewed = JSON.parse(localStorage.getItem('recentlyViewed') || '[]');
             return {
                 token,
                 refreshToken,
                 user,
                 isAuthenticated: true,
+                recentlyViewed,
             };
         }
     } catch (error) {
@@ -129,6 +132,7 @@ const initialState: AuthState = {
     isAuthenticated: false,
     token: null,
     refreshToken: null,
+    recentlyViewed: [],
     adminUsers: [],
     adminUsersTotal: 0,
     selectedUser: null,
@@ -147,27 +151,27 @@ export const registerUser = createAsyncThunk(
         try {
             // Create form data
             const formData = new FormData();
-            
+
             // Required fields
             formData.append('username', userData.username);
             formData.append('email', userData.email);
             formData.append('password', userData.password);
             formData.append('password2', userData.password); // Backend requires password2
-            
+
             // Optional fields
             if (userData.first_name) formData.append('first_name', userData.first_name);
             if (userData.last_name) formData.append('last_name', userData.last_name);
             if (userData.phone_number) formData.append('phone_number', userData.phone_number);
             if (userData.profile_picture) formData.append('profile_picture', userData.profile_picture);
-            
+
             const response = await axiosInstance.post('/accounts/register/', formData, {
                 headers: {
                     'Content-Type': 'multipart/form-data',
                 },
             });
-            
+
             console.log('Register API Response:', response.data);
-            
+
             // Response: { message, data: { user, tokens: { access, refresh } } }
             const { user, tokens } = response.data.data;
 
@@ -182,13 +186,13 @@ export const registerUser = createAsyncThunk(
             return { user, tokens };
         } catch (error: any) {
             console.error('Registration error:', error);
-            
+
             if (error.response?.data?.errors) {
                 const errors = error.response.data.errors;
                 const errorMessage = Object.values(errors).flat().join(', ');
                 return rejectWithValue(errorMessage);
             }
-            
+
             return rejectWithValue(error.response?.data?.message || 'Registration failed');
         }
     }
@@ -200,9 +204,9 @@ export const loginUser = createAsyncThunk(
     async (credentials: { username: string; password: string }, { rejectWithValue }) => {
         try {
             const response = await axiosInstance.post('/accounts/login/', credentials);
-            
+
             console.log('Login API Response:', response.data);
-            
+
             // Response: { message, data: { user, tokens: { access, refresh } } }
             const { user, tokens } = response.data.data;
 
@@ -217,10 +221,10 @@ export const loginUser = createAsyncThunk(
             return { user, tokens };
         } catch (error: any) {
             console.error('Login error:', error);
-            
+
             if (error.response) {
-                const errorMessage = error.response?.data?.message 
-                    || error.response?.data?.error 
+                const errorMessage = error.response?.data?.message
+                    || error.response?.data?.error
                     || 'Invalid username or password';
                 return rejectWithValue(errorMessage);
             } else if (error.request) {
@@ -239,15 +243,15 @@ export const fetchUserProfile = createAsyncThunk(
         try {
             const response = await axiosInstance.get('/accounts/profile/');
             console.log('Fetch Profile Response:', response.data);
-            
+
             // Response: { message, data: user }
             const user = response.data.data;
-            
+
             // Update user in localStorage
             if (typeof window !== 'undefined') {
                 localStorage.setItem('user', JSON.stringify(user));
             }
-            
+
             return user;
         } catch (error: any) {
             console.error('Fetch profile error:', error);
@@ -266,16 +270,16 @@ export const updateUserProfile = createAsyncThunk(
                     'Content-Type': 'multipart/form-data'
                 }
             });
-            
+
             console.log('Update Profile Response:', response.data);
-            
+
             const user = response.data.data;
-            
+
             // Update user in localStorage
             if (typeof window !== 'undefined') {
                 localStorage.setItem('user', JSON.stringify(user));
             }
-            
+
             return user;
         } catch (error: any) {
             console.error('Update profile error:', error);
@@ -360,20 +364,20 @@ export const fetchAllUsers = createAsyncThunk(
     ) => {
         try {
             const queryParams = new URLSearchParams();
-            
+
             if (params.search) queryParams.append('search', params.search);
             if (params.status) queryParams.append('status', params.status);
             if (params.role) queryParams.append('role', params.role);
             if (params.ordering) queryParams.append('ordering', params.ordering);
             if (params.page) queryParams.append('page', params.page.toString());
             if (params.page_size) queryParams.append('page_size', params.page_size.toString());
-            
+
             const queryString = queryParams.toString();
             const url = `/accounts/users/${queryString ? '?' + queryString : ''}`;
-            
+
             const response = await axiosInstance.get(url);
             console.log('Fetch All Users Response:', response.data);
-            
+
             // Response: { success, message, data: { count, next, previous, results } }
             return response.data.data;
         } catch (error: any) {
@@ -390,7 +394,7 @@ export const fetchUserDetails = createAsyncThunk(
         try {
             const response = await axiosInstance.get(`/accounts/users/${userId}/`);
             console.log('Fetch User Details Response:', response.data);
-            
+
             // Response: { success, message, data: user }
             return response.data.data;
         } catch (error: any) {
@@ -410,7 +414,7 @@ export const updateAdminUser = createAsyncThunk(
         try {
             const response = await axiosInstance.put(`/accounts/users/${userId}/`, data);
             console.log('Update Admin User Response:', response.data);
-            
+
             // Response: { success, message, data: user }
             return response.data.data;
         } catch (error: any) {
@@ -427,7 +431,7 @@ export const deleteAdminUser = createAsyncThunk(
         try {
             await axiosInstance.delete(`/accounts/users/${userId}/`);
             console.log(`User ${userId} deleted`);
-            
+
             // Response: 204 No Content
             return userId;
         } catch (error: any) {
@@ -449,7 +453,7 @@ export const changeUserRole = createAsyncThunk(
                 role,
             });
             console.log('Change User Role Response:', response.data);
-            
+
             // Response: { success, message, data: user }
             return response.data.data;
         } catch (error: any) {
@@ -472,7 +476,7 @@ export const bulkUserAction = createAsyncThunk(
                 action,
             });
             console.log('Bulk User Action Response:', response.data);
-            
+
             // Response: { success, message, data: { updated_count } }
             return response.data.data;
         } catch (error: any) {
@@ -489,7 +493,7 @@ export const fetchUserStats = createAsyncThunk(
         try {
             const response = await axiosInstance.get('/accounts/users/stats/');
             console.log('Fetch User Stats Response:', response.data);
-            
+
             // Response: { success, message, data: stats }
             return response.data.data;
         } catch (error: any) {
@@ -510,7 +514,7 @@ const authSlice = createSlice({
             state.isAuthenticated = false;
             state.token = null;
             state.refreshToken = null;
-            
+
             if (typeof window !== 'undefined') {
                 localStorage.removeItem('accessToken');
                 localStorage.removeItem('refreshToken');
@@ -526,9 +530,19 @@ const authSlice = createSlice({
         setUser: (state, action: PayloadAction<User>) => {
             state.user = action.payload;
             state.isAuthenticated = true;
-            
+
             if (typeof window !== 'undefined') {
                 localStorage.setItem('user', JSON.stringify(action.payload));
+            }
+        },
+        addRecentlyViewed: (state, action: PayloadAction<any>) => {
+            const product = action.payload;
+            const exists = state.recentlyViewed.find(p => p.id === product.id);
+            if (!exists) {
+                state.recentlyViewed = [product, ...state.recentlyViewed].slice(0, 10);
+                if (typeof window !== 'undefined') {
+                    localStorage.setItem('recentlyViewed', JSON.stringify(state.recentlyViewed));
+                }
             }
         },
     },
@@ -545,11 +559,11 @@ const authSlice = createSlice({
             state.token = action.payload.tokens.access;
             state.refreshToken = action.payload.tokens.refresh;
             state.error = null;
-            
-            console.log('Redux state updated after register:', { 
-                user: state.user, 
+
+            console.log('Redux state updated after register:', {
+                user: state.user,
                 isAuthenticated: state.isAuthenticated,
-                role: state.user?.role 
+                role: state.user?.role
             });
         });
         builder.addCase(registerUser.rejected, (state, action) => {
@@ -573,11 +587,11 @@ const authSlice = createSlice({
             state.token = action.payload.tokens.access;
             state.refreshToken = action.payload.tokens.refresh;
             state.error = null;
-            
-            console.log('Redux state updated after login:', { 
-                user: state.user, 
+
+            console.log('Redux state updated after login:', {
+                user: state.user,
                 isAuthenticated: state.isAuthenticated,
-                role: state.user?.role 
+                role: state.user?.role
             });
         });
         builder.addCase(loginUser.rejected, (state, action) => {
@@ -682,13 +696,13 @@ const authSlice = createSlice({
         builder.addCase(updateAdminUser.fulfilled, (state, action: PayloadAction<AdminUserDetail>) => {
             state.adminLoading = false;
             state.selectedUser = action.payload;
-            
+
             // Update in users list if present
             const index = state.adminUsers.findIndex((u) => u.id === action.payload.id);
             if (index !== -1) {
                 state.adminUsers[index] = action.payload;
             }
-            
+
             state.adminError = null;
         });
         builder.addCase(updateAdminUser.rejected, (state, action) => {
@@ -722,13 +736,13 @@ const authSlice = createSlice({
         builder.addCase(changeUserRole.fulfilled, (state, action: PayloadAction<AdminUserDetail>) => {
             state.adminLoading = false;
             state.selectedUser = action.payload;
-            
+
             // Update in users list if present
             const index = state.adminUsers.findIndex((u) => u.id === action.payload.id);
             if (index !== -1) {
                 state.adminUsers[index] = action.payload;
             }
-            
+
             state.adminError = null;
         });
         builder.addCase(changeUserRole.rejected, (state, action) => {
@@ -767,5 +781,5 @@ const authSlice = createSlice({
     },
 });
 
-export const { logout, clearError, clearAdminError, setUser } = authSlice.actions;
+export const { logout, clearError, clearAdminError, setUser, addRecentlyViewed } = authSlice.actions;
 export default authSlice.reducer;

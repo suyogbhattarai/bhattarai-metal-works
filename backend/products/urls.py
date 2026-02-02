@@ -8,7 +8,9 @@ from .views import (
     SearchView, MaterialListCreateView, MaterialDetailView,
     SpecificationListCreateView, SpecificationDetailView,
     ProductSpecificationListCreateView, ProductSpecificationDetailView,
-    ProductMaterialListCreateView, ProductMaterialDetailView
+    ProductMaterialListCreateView, ProductMaterialDetailView,
+    StoreServiceListCreateView, StoreServiceDetailView, 
+    AnalyticsDashboardView, DashboardOverviewView
 )
 
 app_name = 'products'
@@ -61,9 +63,19 @@ urlpatterns = [
     # MUST come before <slug:slug>/ pattern (more specific)
     path('<slug:slug>/reviews/', ProductReviewListCreateView.as_view(), name='product-reviews'),
     
+    # ============= ANALYTICS & OVERVIEW =============
+    path('overview/', DashboardOverviewView.as_view(), name='dashboard-overview'),
+    path('analytics/dashboard/', AnalyticsDashboardView.as_view(), name='analytics-dashboard'),
+
+    # ============= STORE SERVICES =============
+    path('store-services/', StoreServiceListCreateView.as_view(), name='store-services'),
+    path('store-services/<int:pk>/', StoreServiceDetailView.as_view(), name='store-service-detail'),
+
     # ============= PRODUCT DETAIL (CATCH-ALL - MUST BE LAST) =============
     # This is the catch-all pattern, so it MUST be last
     path('<slug:slug>/', ProductDetailView.as_view(), name='product-detail'),
+    
+    # ...
     
     # ============= REVIEW DETAIL (for editing reviews) =============
     # This can be placed here or at top - doesn't conflict
