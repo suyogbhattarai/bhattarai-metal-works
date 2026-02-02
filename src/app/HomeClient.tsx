@@ -445,7 +445,7 @@ export default function HomeClient() {
             </div>
           </div>
 
-          <div className="new-content mb-10 lg:px-15 md:px-10 sm:px-5 px-3 absolute lg:top-[36%] md:top-[61.7%] sm:top-[62%] top-[51%] hidden w-full lg:w-[54%] md:w-[90%] z-20">
+          <div className="new-content mb-10 lg:px-15 md:px-10 sm:px-5 px-3 absolute lg:top-[28%] md:top-[52%] sm:top-[52%] top-[45%] hidden w-full lg:w-[54%] md:w-[90%] z-20">
             <div className="mb-6">
               <h1 className="text-[1.4rem] sm:text-[2rem] md:text-[32px] lg:text-[2.2rem] font-bold leading-relaxed">
                 <span className="new-heading text-[#f6423a]">Scalable Manufacturing Services</span>
