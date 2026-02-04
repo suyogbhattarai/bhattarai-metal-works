@@ -1,7 +1,7 @@
 @import "tailwindcss";
 
 :root {
-  --background: #0b173d;
+  --background: #071236;
   --navy-primary: var(--background);
   --navy-deep: var(--background);
   --navy-midnight: color-mix(in srgb, var(--background), black 20%);

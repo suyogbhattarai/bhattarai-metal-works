@@ -49,7 +49,7 @@ export default function PortfolioItemPage() {
             <Navbar />
 
             {/* Project Header */}
-            <header className="relative pt-32 pb-20 px-6 md:px-10 lg:px-15 overflow-hidden">
+            <header className="relative pt-32 pb-20 px-6 md:px-10 lg:px-15 overflow-hidden mt-10">
                 <div className="absolute top-0 left-0 w-full h-[600px] bg-gradient-to-b from-[#f6423a]/10 to-transparent pointer-events-none" />
 
                 <div className="max-w-7xl mx-auto flex flex-col items-center text-center relative z-10">

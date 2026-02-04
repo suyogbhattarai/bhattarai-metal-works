@@ -25,8 +25,7 @@ function Navbar({ variant = 'default', onMenuClick, forceTransparent = false }: 
   const profileDropdownRef = useRef<HTMLDivElement>(null);
   const pathname = usePathname();
   const isHomePage = pathname === '/';
-  const isSolidPage = pathname === '/products' || pathname?.startsWith('/products') ||
-    pathname === '/ourbrand' || pathname?.startsWith('/ourbrand');
+  const isSolidPage = pathname === '/ourbrand' || pathname?.startsWith('/ourbrand');
 
   const [navBg, setNavBg] = useState(forceTransparent ? 'transparent' : (isSolidPage ? 'var(--background)' : 'transparent'));
   const [textColor, setTextColor] = useState('white');
@@ -181,8 +180,7 @@ function Navbar({ variant = 'default', onMenuClick, forceTransparent = false }: 
 
       // 3. Special overrides for specific pages
       if (pathname === '/about' || pathname?.startsWith('/about') ||
-        pathname === '/services' || pathname?.startsWith('/services') ||
-        pathname === '/portfolio' || pathname?.startsWith('/portfolio')) {
+        pathname === '/services' || pathname?.startsWith('/services')) {
         currentBg = 'transparent';
       }
 
@@ -226,7 +224,7 @@ function Navbar({ variant = 'default', onMenuClick, forceTransparent = false }: 
         style={{ backgroundColor: navBg }}
         className={`${getNavStyles()} left-0 right-0 w-full z-40 transition-all duration-500 ${navBg === 'transparent' ? '' : 'backdrop-blur-md shadow-sm'}`}
       >
-        <div className={`w-full max-w-[1920px] mx-auto ${variant === 'dashboard' ? 'px-4 lg:px-6' : 'lg:px-15 md:py-[1.3rem] py-[0.8rem] md:px-10 sm:px-5 px-5'}`}>
+        <div className={`w-full max-w-[1920px] mx-auto ${variant === 'dashboard' ? 'px-4 lg:px-6' : `lg:px-15 ${navBg === 'transparent' ? 'md:py-[1.3rem] py-[0.8rem]' : 'md:py-[2rem] py-[1.2rem]'} md:px-10 sm:px-5 px-5`}`}>
           <div className="rounded-lg ">
             <div className="flex items-center justify-between">
               <div className="flex items-center flex-shrink-0">
@@ -309,7 +307,7 @@ function Navbar({ variant = 'default', onMenuClick, forceTransparent = false }: 
                   ) : (
                     <a href="/login" className="border border-white px-4 xl:px-6 py-2 rounded-full font-semibold text-white hover:text-white hover:border-white hover:bg-white/20 transition text-base" onClick={() => setIsOpen(false)}>Login</a>
                   )}
-                  <a href="/getquote" className="bg-[#f6423a] text-white px-4 xl:px-6 py-2 rounded-full font-semibold hover:bg-[#e03229] transition text-sm xl:text-base whitespace-nowrap">
+                  <a href="/getquote" className={`${(pathname?.startsWith('/products') && navBg === 'transparent') ? 'bg-white text-black hover:bg-gray-200' : 'bg-[#f6423a] text-white hover:bg-[#e03229]'} px-4 xl:px-6 py-2 rounded-full font-semibold transition text-sm xl:text-base whitespace-nowrap`}>
                     Contact Us
                   </a>
                 </div>

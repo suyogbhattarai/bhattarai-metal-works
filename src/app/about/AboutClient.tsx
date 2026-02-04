@@ -81,7 +81,7 @@ export default function AboutClient() {
                             ease: 'power3.out',
                             scrollTrigger: {
                                 trigger: section,
-                                start: 'top 60%',
+                                start: 'top 80%',
                                 toggleActions: 'play none none reverse',
                                 invalidateOnRefresh: true
                             }
@@ -144,7 +144,7 @@ export default function AboutClient() {
                     className="snap-section relative h-screen w-full flex items-center overflow-hidden"
                     style={{ scrollSnapAlign: 'start', scrollSnapStop: 'always' }}
                 >
-                    <div className="parallax-bg absolute inset-0 z-0 h-[140%] -top-[20%] w-full">
+                    <div className="parallax-bg absolute inset-0 z-0 will-change-transform h-[140%] -top-[20%] w-full">
                         <div
                             className="absolute inset-0 bg-cover bg-center"
                             style={{ backgroundImage: `url(${backgroundImages[0]})` }}
@@ -160,7 +160,7 @@ export default function AboutClient() {
                     </div>
 
                     <div className="relative z-20 w-full max-w-[1920px] mx-auto px-5">
-                        <div className="max-w-3xl mx-auto flex flex-col items-center text-center translate-y-[60px] md:translate-y-[100px]">
+                        <div className="max-w-3xl mx-auto flex flex-col items-center text-center translate-y-[20px] md:translate-y-[40px]">
                             <span className="content-fade inline-block px-4 py-1.5 bg-[#f6423a] text-white text-[8px] font-black uppercase tracking-widest rounded-full mb-6 shadow-lg shadow-red-900/20">
                                 Our Legacy
                             </span>
@@ -196,7 +196,7 @@ export default function AboutClient() {
                     className="snap-section relative h-screen w-full flex items-center overflow-hidden"
                     style={{ scrollSnapAlign: 'start', scrollSnapStop: 'always' }}
                 >
-                    <div className="parallax-bg absolute inset-0 z-0 h-[140%] -top-[20%] w-full">
+                    <div className="parallax-bg absolute inset-0 z-0 will-change-transform h-[140%] -top-[20%] w-full">
                         <div
                             className="absolute inset-0 bg-cover bg-center"
                             style={{ backgroundImage: `url(${backgroundImages[1]})` }}

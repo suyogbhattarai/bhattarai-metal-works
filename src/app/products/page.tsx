@@ -147,12 +147,30 @@ export default function ProductsPage() {
         <Swiper
           modules={[Autoplay, Pagination, Navigation, EffectFade]}
           effect="fade"
-          speed={1000}
+          speed={500}
           autoplay={{ delay: 6000 }}
           pagination={{ clickable: true, bulletActiveClass: 'bg-white opacity-100 !w-6 transition-all' }}
           loop
           className="h-full w-full"
         >
+          <SwiperSlide>
+            <div className="relative h-full w-full bg-[#0d2360]">
+              <div className="absolute inset-0 hero-pattern opacity-20" />
+              <img src="https://images.unsplash.com/photo-1504917595217-d4dc5ebe6122?w=1920" className="absolute inset-0 w-full h-full object-cover opacity-20" />
+              <div className="absolute inset-0 flex items-center justify-center text-center px-6">
+                <div className="max-w-4xl mt-24">
+                  <div className="hero-text-animate inline-flex items-center gap-2 px-4 py-1 border border-white/20 text-white text-[9px] font-black uppercase tracking-[0.25em] rounded-full mb-6 backdrop-blur-sm">
+                    <MdAutoAwesome size={14} /> New Arrival
+                  </div>
+                  <h2 className="hero-text-animate text-4xl md:text-6xl lg:text-7xl font-black text-white mb-6 uppercase tracking-tight leading-[1.1]">Architectural <br /> Metal Works.</h2>
+                  <p className="hero-text-animate text-white/70 text-sm md:text-lg mb-8 max-w-2xl mx-auto font-medium">Precision-crafted solutions serving visionary projects and architectural excellence.</p>
+                  <div className="hero-text-animate">
+                    <button className="bg-[#f6423a] text-white px-10 py-3.5 rounded-full font-black text-[10px] uppercase tracking-widest hover:bg-white hover:text-[#0d2360] transition-all shadow-xl">Learn More</button>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </SwiperSlide>
           <SwiperSlide>
             <div className="relative h-full w-full bg-[#f6423a]">
               <div className="absolute inset-0 hero-pattern opacity-40" />
@@ -167,22 +185,6 @@ export default function ProductsPage() {
                   <div className="hero-text-animate">
                     <button className="bg-white text-[#f6423a] px-10 py-3.5 rounded-full font-black text-[10px] uppercase tracking-widest hover:bg-[#071236] hover:text-white transition-all shadow-xl">Explore Catalogue</button>
                   </div>
-                </div>
-              </div>
-            </div>
-          </SwiperSlide>
-          <SwiperSlide>
-            <div className="relative h-full w-full bg-[#0d2360]">
-              <div className="absolute inset-0 hero-pattern opacity-20" />
-              <img src="https://images.unsplash.com/photo-1504917595217-d4dc5ebe6122?w=1920" className="absolute inset-0 w-full h-full object-cover opacity-20" />
-              <div className="absolute inset-0 flex items-center justify-center text-center px-6">
-                <div className="max-w-4xl mt-24">
-                  <div className="inline-flex items-center gap-2 px-4 py-1 border border-white/20 text-white text-[9px] font-black uppercase tracking-[0.25em] rounded-full mb-6 backdrop-blur-sm">
-                    <MdAutoAwesome size={14} /> New Arrival
-                  </div>
-                  <h2 className="text-4xl md:text-6xl lg:text-7xl font-black text-white mb-6 uppercase tracking-tight leading-[1.1]">Architectural <br /> Metal Works.</h2>
-                  <p className="text-white/70 text-sm md:text-lg mb-8 max-w-2xl mx-auto font-medium">Precision-crafted solutions serving visionary projects and architectural excellence.</p>
-                  <button className="bg-[#f6423a] text-white px-10 py-3.5 rounded-full font-black text-[10px] uppercase tracking-widest hover:bg-white hover:text-[#0d2360] transition-all shadow-xl">Learn More</button>
                 </div>
               </div>
             </div>

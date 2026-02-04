@@ -35,7 +35,7 @@ export default function HomeClient() {
   const [isGsapReady, setIsGsapReady] = useState(false);
 
   // Native Scroll Snap logic removed to fix browser hanging issue.
-  // GSAP-level snapping is now used for the critical hero animation.
+  // GSAP-level snapping removed to prevent jumpy scroll behavior.
 
   useEffect(() => {
     // Delay initialization to make sure DOM is fully rendered
@@ -115,13 +115,12 @@ export default function HomeClient() {
                   trigger: videoContainerRef.current,
                   start: "top top",
                   end: "+=200%",
-                  scrub: 1,
+                  scrub: 0.5,
                   pin: true,
                   anticipatePin: 1,
                   snap: {
                     snapTo: [0, 1],
-                    duration: { min: 0.2, max: 0.5 },
-                    delay: 0.1,
+                    duration: 0.5,
                     ease: "power2.inOut"
                   }
                 },
@@ -173,13 +172,12 @@ export default function HomeClient() {
                   trigger: videoContainerRef.current,
                   start: "top top",
                   end: "+=200%",
-                  scrub: 1,
+                  scrub: 0.5,
                   pin: true,
                   anticipatePin: 1,
                   snap: {
                     snapTo: [0, 1],
-                    duration: { min: 0.2, max: 0.5 },
-                    delay: 0.1,
+                    duration: 0.5,
                     ease: "power2.inOut"
                   }
                 },
@@ -231,13 +229,12 @@ export default function HomeClient() {
                   trigger: videoContainerRef.current,
                   start: "top top",
                   end: "+=200%",
-                  scrub: 1,
+                  scrub: 0.5,
                   pin: true,
                   anticipatePin: 1,
                   snap: {
                     snapTo: [0, 1],
-                    duration: { min: 0.2, max: 0.5 },
-                    delay: 0.1,
+                    duration: 0.5,
                     ease: "power2.inOut"
                   }
                 },
@@ -480,11 +477,9 @@ export default function HomeClient() {
 
         <main className="bg-[var(--background)] text-white relative overflow-hidden">
           {/* Abstract Background Elements from Portfolio - localized depth - High Vibrancy */}
-          <div className="absolute top-0 right-0 w-[60vw] h-[60vw] bg-[#f6423a]/25 blur-[200px] rounded-full -translate-y-1/2 translate-x-1/3 pointer-events-none z-10" />
-          <div className="absolute bottom-0 left-0 w-[50vw] h-[50vw] bg-blue-600/20 blur-[180px] rounded-full translate-y-1/2 -translate-x-1/4 pointer-events-none z-10" />
-          <div className="absolute top-1/2 left-1/2 w-[70vw] h-[70vw] bg-blue-400/15 blur-[220px] rounded-full -translate-x-1/2 -translate-y-1/2 pointer-events-none z-10" />
 
-          <div ref={whyChooseSectionRef} className="relative z-20">
+
+          <div ref={whyChooseSectionRef} className="relative z-32">
             <WhyChooseSection />
           </div>
 
@@ -514,12 +509,12 @@ export default function HomeClient() {
             </div>
           </section>
 
-          <section className="flex items-center justify-center px-5 md:px-20 py-10 w-full mx-auto bg-[#f6423a] rounded-t-[50px] shadow-2xl relative z-30 overflow-hidden">
+          <section className="flex items-center justify-center px-5 md:px-20 py-10 w-full mx-auto bg-white rounded-t-[50px] shadow-2xl relative z-30 overflow-hidden">
             <div className="max-w-4xl relative py-10 mx-auto text-center z-20">
-              <h2 className="text-5xl md:text-7xl font-bold text-white mb-6">
+              <h2 className="text-5xl md:text-7xl font-bold text-black mb-6">
                 Ready to Start Your Project?
               </h2>
-              <p className="text-xl text-white/70 mb-10">
+              <p className="text-xl text-black/70 mb-10">
                 Let's bring your vision to life with quality metalwork that lasts
                 generations.
               </p>
@@ -530,7 +525,7 @@ export default function HomeClient() {
                   </button>
                 </Link>
                 <Link href="/portfolio">
-                  <button className="px-10 py-4 border-2 border-white text-white rounded-full text-lg font-semibold hover:bg-white hover:text-black transition-all">
+                  <button className="px-10 py-4 border-2 border-[#0b173d] text-[#0b173d] rounded-full text-lg font-semibold hover:bg-[#0b173d] hover:text-white transition-all">
                     View Portfolio
                   </button>
                 </Link>
